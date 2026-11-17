@@ -1,0 +1,464 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>虚拟内存 | windfire's blog</title><meta name="author" content="windfire"><meta name="copyright" content="windfire"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f2f8ff"><meta name="description" content="定义虚拟内存是一套由操作系统软件和硬件内存管理单元协同实现的、综合性的内存管理技术体系。它的核心目标是： 1·提供虚拟地址空间的抽象（让每个进程有独立的、连续的大空间）。【虚拟地址空间另有文章，本文不作解释】 2·高效、安全地管理有限的物理内存资源。 3·实现内存的共享与保护。 核心机制VMA（Virtual Memory Area，虚拟内存区域）是内核在每个进程的 mm_struct 中维护的数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟内存">
+<meta property="og:url" content="http://example.com/posts/f79e4123/index.html">
+<meta property="og:site_name" content="windfire&#39;s blog">
+<meta property="og:description" content="定义虚拟内存是一套由操作系统软件和硬件内存管理单元协同实现的、综合性的内存管理技术体系。它的核心目标是： 1·提供虚拟地址空间的抽象（让每个进程有独立的、连续的大空间）。【虚拟地址空间另有文章，本文不作解释】 2·高效、安全地管理有限的物理内存资源。 3·实现内存的共享与保护。 核心机制VMA（Virtual Memory Area，虚拟内存区域）是内核在每个进程的 mm_struct 中维护的数">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/Default_cover.jpg">
+<meta property="article:published_time" content="2026-11-10T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-10T00:00:00.000Z">
+<meta property="article:author" content="windfire">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="内存">
+<meta property="article:tag" content="虚拟内存">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/Default_cover.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "虚拟内存",
+  "url": "http://example.com/posts/f79e4123/",
+  "image": "http://example.com/img/Default_cover.jpg",
+  "datePublished": "2026-11-10T00:00:00.000Z",
+  "dateModified": "2026-11-10T00:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "windfire",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/Website_icon.jpg"><link rel="canonical" href="http://example.com/posts/f79e4123/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#112f4b')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f2f8ff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":300,"languages":{"author":"作者: windfire","link":"链接: ","source":"来源: windfire's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '虚拟内存',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiperstyle.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/Website_Background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/Avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/comments/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-comment-dots"></i><span> 说说</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/Default_cover.jpg);"><nav id="nav"><!-- 左侧博客信息区域--><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/Website_icon.jpg" alt="Logo"><span class="site-name">windfire's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">虚拟内存</span></a></span><!-- 新增的导航菜单容器（居中布局关键）--><div id="nav-menus-container"><!-- 菜单主体部分--><div id="menus"> <!-- 菜单项--><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/comments/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-comment-dots"></i><span> 说说</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div id="nav-right-container"><!-- 搜索按钮--><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><!-- 移动端汉堡菜单按钮（保持原位置）--><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">虚拟内存</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-10T00:00:00.000Z" title="发表于 2026-11-10 08:00:00">2026-11-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-10T00:00:00.000Z" title="更新于 2026-11-10 08:00:00">2026-11-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/pwn/">pwn</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id data-flag-title><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p><strong>虚拟内存</strong>是一套由<strong>操作系统软件</strong>和<strong>硬件内存管理单元</strong>协同实现的、综合性的<strong>内存管理技术体系</strong>。它的核心目标是：</p>
+<p><strong>1·提供虚拟地址空间的抽象</strong>（让每个进程有独立的、连续的大空间）。【<u>虚拟地址空间</u>另有文章，本文不作解释】</p>
+<p><strong>2·高效、安全地管理有限的物理内存资源</strong>。</p>
+<p><strong>3·实现内存的共享与保护</strong>。</p>
+<h2 id="核心机制"><a href="#核心机制" class="headerlink" title="核心机制"></a>核心机制</h2><p>VMA（Virtual Memory Area，虚拟内存区域）是内核在每个进程的 <code>mm_struct</code> 中维护的数据结构。它的职责是<strong>划定虚拟地址的用途和规则</strong>。</p>
+<p>一个 VMA 节点记录的信息大致如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vm_start:     0x7F0000100000    ← 起始虚拟地址</span><br><span class="line">vm_end:       0x7F0000200000    ← 结束虚拟地址（1MB范围）</span><br><span class="line">vm_flags:     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE</span><br><span class="line">vm_file:      NULL              ← 关联的文件（NULL = 匿名映射）</span><br><span class="line">vm_pgoff:     0                 ← 文件内的偏移量（匿名映射时为0）</span><br></pre></td></tr></table></figure>
+
+<p>就像作土地规划：城市的土地规划局把一块地划为”住宅用地”（VMA），规定了这块地可以盖住宅，但不能盖化工厂（权限）。至于这块地上的房子实际上盖了没有、盖了几栋——那是另一回事。</p>
+<p><strong>VMA 层面，”映射”只意味着一件事：一段连续的虚拟地址区间已经被声明用途了。它不涉及任何物理内存的分配。</strong></p>
+<h3 id="VMA-的来源"><a href="#VMA-的来源" class="headerlink" title="VMA 的来源"></a>VMA 的来源</h3><p>进程中的 VMA 主要来自以下几个途径：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>典型 VMA</th>
+<th>何时建立</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ELF 加载</strong></td>
+<td>.text 段、.rodata 段、.data 段、.bss 段的 VMA</td>
+<td><code>execve()</code> 系统调用内部</td>
+</tr>
+<tr>
+<td><strong>动态链接器</strong></td>
+<td>共享库（libc.so 等）的代码段和数据段</td>
+<td><code>ld.so</code> 在 <code>main</code> 之前映射</td>
+</tr>
+<tr>
+<td><strong>堆扩展（brk）</strong></td>
+<td>堆 VMA 扩大</td>
+<td>首次 <code>malloc</code> 时 ptmalloc 调用 <code>brk()</code></td>
+</tr>
+<tr>
+<td><strong>mmap 调用</strong></td>
+<td>文件映射、匿名映射、共享内存的 VMA</td>
+<td>用户显式调用或 <code>malloc</code> 大块分配间接调用</td>
+</tr>
+<tr>
+<td><strong>栈自动增长</strong></td>
+<td>栈 VMA 扩大</td>
+<td>缺页异常处理程序发现栈需要扩展时</td>
+</tr>
+</tbody></table>
+<h3 id="VMA查看"><a href="#VMA查看" class="headerlink" title="VMA查看"></a>VMA查看</h3><p>一个进程的 VMA 可以通过 <code>/proc//maps</code> 查看。以 <code>cat /proc/self/maps</code> 为例（x68-64 Linux）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">00400000-00401000 r-xp 00000000 08:01 123456  /bin/cat         	 	← .text 段的 VMA</span><br><span class="line">00401000-00402000 r--p 00001000 08:01 123456  /bin/cat       	   	← .rodata 段的 VMA</span><br><span class="line">00402000-00403000 rw-p 00002000 08:01 123456  /bin/cat          	← .data 段的 VMA</span><br><span class="line">00403000-00404000 rw-p 00000000 00:00 0                          	← .bss 段的 VMA</span><br><span class="line">00b8d000-00bae000 rw-p 00000000 00:00 0        [heap]            	← 堆的 VMA</span><br><span class="line">7f0000000000-7f0000020000 r-xp 00000000 08:01 789012 /lib/libc.so 	← libc .text 的 VMA</span><br><span class="line">7f0000020000-7f0000021000 r--p 00020000 08:01 789012 /lib/libc.so</span><br><span class="line">7f0000021000-7f0000022000 rw-p 00021000 08:01 789012 /lib/libc.so</span><br><span class="line">7fff5c000000-7fff5c021000 rw-p 00000000 00:00 0  [stack]         	← 栈的 VMA</span><br></pre></td></tr></table></figure>
+
+<p>每一行都是一个 VMA。注意 <code>.bss</code> 段和 <code>[heap]</code> 的权限是 <code>rw-p</code>（可读写、不可执行），<code>libc.so</code> 的代码段是 <code>r-xp</code>（可读可执行）。这些权限来自 ELF 文件的段表，加载时原封不动地传递为 VMA 的权限标志。</p>
+<h4 id="参数释义"><a href="#参数释义" class="headerlink" title="参数释义"></a>参数释义</h4><p><code>/proc//maps</code> 每行格式</p>
+<table>
+<thead>
+<tr>
+<th>地址范围</th>
+<th>权限</th>
+<th>偏移量</th>
+<th>设备号</th>
+<th>inode</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00400000-00401000</td>
+<td>r-xp</td>
+<td>00000000</td>
+<td>08:01</td>
+<td>123456</td>
+<td>&#x2F;bin&#x2F;cat</td>
+</tr>
+</tbody></table>
+<h5 id="字段一：地址范围"><a href="#字段一：地址范围" class="headerlink" title="字段一：地址范围"></a>字段一：地址范围</h5><p>这是该 VMA 在进程虚拟地址空间中占据的<strong>起始地址和结束地址</strong>（结束地址不含在内，即 <code>[start, end)</code>）。</p>
+<p><code>00400000-00401000</code> 表示这段 VMA 覆盖的虚拟地址从 <code>0x00400000</code> 到 <code>0x00401000</code>（不含），总共 <code>0x1000</code> &#x3D; 4096 字节 &#x3D; <strong>恰好 1 页（4KB）</strong>。</p>
+<p><strong>为什么地址是这些值？</strong></p>
+<p>x86-64 Linux 下，可执行文件的默认加载基址是 <code>0x00400000</code>（可通过 <code>ld</code> 的 <code>-Ttext</code> 修改）。链接器在生成 ELF 文件时，将 .text 段的虚拟地址硬编码为从 <code>0x00400000</code> 开始。内核加载时原样使用这些地址（除非启用了 PIE——位置无关可执行文件，则基址会加上 ASLR 随机偏移，通常落在 <code>0x55...</code> 或 <code>0x7F...</code> 范围；这里 <code>0x00400000</code> 说明 <code>/bin/cat</code> 是非 PIE 的传统可执行文件；PIE内容在其他文章）。</p>
+<h5 id="字段二：权限"><a href="#字段二：权限" class="headerlink" title="字段二：权限"></a>字段二：权限</h5><p>四个字符，分别表示：</p>
+<table>
+<thead>
+<tr>
+<th>字符位置</th>
+<th>含义</th>
+<th>取值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1 位</td>
+<td><strong>r</strong>ead 可读</td>
+<td><code>r</code> &#x3D; 可读，<code>-</code> &#x3D; 不可读</td>
+</tr>
+<tr>
+<td>第 2 位</td>
+<td><strong>w</strong>rite 可写</td>
+<td><code>w</code> &#x3D; 可写，<code>-</code> &#x3D; 不可写</td>
+</tr>
+<tr>
+<td>第 3 位</td>
+<td>e<strong>x</strong>ecute 可执行</td>
+<td><code>x</code> &#x3D; 可执行，<code>-</code> &#x3D; 不可执行</td>
+</tr>
+<tr>
+<td>第 4 位</td>
+<td>共享&#x2F;私有</td>
+<td><code>p</code> &#x3D; <strong>p</strong>rivate 私有，<code>s</code> &#x3D; <strong>s</strong>hared 共享</td>
+</tr>
+</tbody></table>
+<p><code>r-xp</code> 解读：<strong>可读、不可写、可执行、私有映射</strong>。这正是 .text 段的经典权限组合——CPU 必须能读取指令（r）、执行指令（x），但绝不允许程序在运行时修改自身代码（没有 w）。<code>p</code> 表示修改只对本进程可见（COW 机制）。</p>
+<p><code>rw-p</code>（data 段、bss 段、堆、栈）：可读可写，不可执行，私有。NX 位阻止了在这些数据区域执行代码。</p>
+<p><code>r--p</code>（rodata 段）：可读，不可写，不可执行，私有。比 data 段更严格，连写都不允许。</p>
+<h5 id="字段三：偏移量"><a href="#字段三：偏移量" class="headerlink" title="字段三：偏移量"></a>字段三：偏移量</h5><p>对于<strong>文件映射</strong>，这是该 VMA 在映射文件中对应的<strong>起始字节偏移</strong>。它不是虚拟地址，不是物理地址，而是<strong>文件内部的逻辑偏移量</strong>。</p>
+<p>以 <code>/bin/cat</code> 的三段为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">00400000-00401000 r-xp 00000000  ... /bin/cat   ← 从文件偏移 0x00000000 开始（即文件开头）</span><br><span class="line">00401000-00402000 r--p 00001000  ... /bin/cat   ← 从文件偏移 0x00001000 开始（第 4096 字节）</span><br><span class="line">00402000-00403000 rw-p 00002000  ... /bin/cat   ← 从文件偏移 0x00002000 开始（第 8192 字节）</span><br></pre></td></tr></table></figure>
+
+<p><strong>匿名映射的偏移量</strong>：bss 段（<code>00403000-00404000 rw-p 00000000 00:00 0</code>）的偏移量为 <code>0</code>，因为 bss 没有对应的文件内容——它不是从 ELF 文件映射的，而是匿名映射补齐的。堆和栈同理，偏移量始终为 <code>0</code> 且无实际意义。</p>
+<h5 id="字段四：设备号"><a href="#字段四：设备号" class="headerlink" title="字段四：设备号"></a>字段四：设备号</h5><p><code>主设备号:次设备号</code>，标识映射文件所在的<strong>块设备</strong>。<code>08:01</code> 表示主设备号 8、次设备号 1。</p>
+<p>在 Linux 中，主设备号 8 通常对应 <strong>SCSI&#x2F;SATA 磁盘</strong>（<code>sd*</code> 设备）。<code>08:01</code> 指向 <code>/dev/sda1</code>——即第一块 SCSI&#x2F;SATA 磁盘的第一个分区。</p>
+<p>对于匿名映射（bss、堆、栈），设备号为 <code>00:00</code>——表示<strong>没有关联任何设备</strong>，这是一个纯内存区域。</p>
+<h5 id="字段五：inode"><a href="#字段五：inode" class="headerlink" title="字段五：inode"></a>字段五：inode</h5><p>映射文件在文件系统中的 <strong>inode 编号</strong>。inode 是文件系统中每个文件的唯一标识符——它不是文件名，而是文件在磁盘上的”身份证号”。</p>
+<p>同一个文件可以通过 <code>stat</code> 命令查看 inode：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ stat /bin/cat</span><br><span class="line">  ...</span><br><span class="line">Inode: 123456   ...</span><br></pre></td></tr></table></figure>
+
+<p>对于匿名映射，inode 为 <code>0</code>——因为根本没有文件，自然也就没有 inode。</p>
+<p><strong>设备号 + inode 组合</strong>可以唯一标识系统中的任何一个文件。内核用这对值来判断：两个不同进程映射的”同一个文件”是否真的是同一个文件（而不是恰好同名）。如果设备号和 inode 都匹配，可以安全地共享物理页（COW）。</p>
+<h5 id="字段六：路径"><a href="#字段六：路径" class="headerlink" title="字段六：路径"></a>字段六：路径</h5><p>被映射的<strong>文件路径</strong>，或特殊标记。</p>
+<p><strong>文件路径</strong>：直接显示映射的源文件。对于 ELF 可执行文件和共享库，它是磁盘上的绝对路径。对于使用 <code>mmap</code> 显式映射的任意文件，同样显示其路径。</p>
+<p><strong>特殊标记</strong>（放在方括号中）：</p>
+<table>
+<thead>
+<tr>
+<th>标记</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>[heap]</code></td>
+<td>堆 VMA——由 <code>brk/sbrk</code> 管理的动态内存区域</td>
+</tr>
+<tr>
+<td><code>[stack]</code></td>
+<td>主线程的栈 VMA</td>
+</tr>
+<tr>
+<td><code>[stack:]</code></td>
+<td>某个线程的栈（tid 为线程 ID）</td>
+</tr>
+<tr>
+<td><code>[vdso]</code></td>
+<td>vDSO（virtual Dynamic Shared Object）——内核注入到每个进程的虚拟共享库，提供 <code>gettimeofday</code> 等高频系统调用的用户态快速路径</td>
+</tr>
+<tr>
+<td><code>[vvar]</code></td>
+<td>vDSO 配套的只读数据页，内核用来与 vDSO 代码共享时间等数据</td>
+</tr>
+<tr>
+<td><code>[vsyscall]</code></td>
+<td>老式 vsyscall 页（已被 vDSO 取代，仅保留兼容）</td>
+</tr>
+<tr>
+<td><code>[anon:]</code></td>
+<td>通过 <code>memfd_create</code> 或 <code>prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME)</code> 命名的匿名映射</td>
+</tr>
+<tr>
+<td><code>[anon:...]</code> 或无标记</td>
+<td>普通的匿名映射（<code>malloc</code> 大块、<code>mmap(MAP_ANONYMOUS)</code> 等），路径列为空</td>
+</tr>
+</tbody></table>
+<p>注意：bss 段（<code>00403000-00404000 rw-p 00000000 00:00 0</code>）路径为<strong>空</strong>——它不是 <code>[heap]</code> 也不是 <code>[stack]</code>，而是一个紧贴在 data 段之后的匿名映射。内核没有给它特殊标签，只靠地址范围紧接 data 段来体现它的身份。</p>
+<h3 id="VMA运行"><a href="#VMA运行" class="headerlink" title="VMA运行"></a>VMA运行</h3><p>以缺页异常处理程序的逻辑为例，查看VMA与PT（页表）的联动</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">CPU 访问虚拟地址 V</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">MMU 查页表 → PTE 的 P 位 = 0</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">CPU 触发缺页异常 → 进入内核态</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">内核缺页处理程序：</span><br><span class="line">    ① 遍历 VMA 树 → V 落在某个 VMA 里吗？</span><br><span class="line">    ② 不落在任何 VMA 里 → SIGSEGV（非法访问）</span><br><span class="line">    ③ 落在 VMA 里 → 检查访问权限（比如试图写只读 VMA → SIGSEGV）</span><br><span class="line">    ④ 合法访问 → 按 VMA 类型执行对应操作：</span><br><span class="line">       - 匿名映射（vm_file = NULL）→ 分配物理页，清零，填 PTE</span><br><span class="line">       - 文件映射（vm_file ≠ NULL）→ 分配物理页，从文件读取数据，填 PTE</span><br><span class="line">       - COW（Copy-on-Write）→ 复制原物理页，更新 PTE</span><br><span class="line">    ⑤ 返回用户态，CPU 重新执行被中断的指令 → 这次 PTE 的 P=1，成功</span><br></pre></td></tr></table></figure>
+
+<h1 id="虚拟地址空间"><a href="#虚拟地址空间" class="headerlink" title="虚拟地址空间"></a>虚拟地址空间</h1><h2 id="定义-1"><a href="#定义-1" class="headerlink" title="定义"></a>定义</h2><p>一个虚假的地址存放空间，用于实现内存隔离和虚拟内存管理，大小由系统位数决定，如32位系统虚拟地址空间为4GB，64位系统为256TB（假设地址空间为N位，则地址范围为0~2^(n-1)）。</p>
+<p>不同于物理地址空间，物理地址空间是实际物理内存的地址集合，其中的每个地址都指向具体的存储单元，而虚拟地址空间中的地址可能未分配、指向磁盘或已映射到物理内存。</p>
+<h2 id="进程的虚拟地址空间"><a href="#进程的虚拟地址空间" class="headerlink" title="进程的虚拟地址空间"></a>进程的虚拟地址空间</h2><p>每个进程在操作系统中都有独立的虚拟地址空间，使得进程认为自己独占内存，这就像给每个进程都发了一张专属的、完整的地图，它们都以为自己是这片“土地”的唯一主人，但实际上，操作系统和硬件在背后将这些不同的“地图”动态地翻译到同一片物理内存“实地”上。</p>
+<h3 id="划分"><a href="#划分" class="headerlink" title="划分"></a>划分</h3><p>典型的虚拟地址空间划分包括：</p>
+<p>高地址部分（内核空间）：</p>
+<p>​	内核区：操作系统核心代码和数据，所有进程共享，但用户态程序无权访问。</p>
+<p>低地址部分（用户空间）：</p>
+<p>​	代码区和数据区（text、data、bss）：存放可执行文件的指令和静态数据；</p>
+<p>​	堆区：动态分配内存区域，随着malloc等操作向高地址扩展；</p>
+<p>​	共享库映射区：系统库在物理内存中只存储一份，多个进程共享；</p>
+<p>​	栈区：用于函数调用和局部变量存储；</p>
+<p>​	其他区域；</p>
+<h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><h4 id="1·核心目的：隔离与保护"><a href="#1·核心目的：隔离与保护" class="headerlink" title="1·核心目的：隔离与保护"></a>1·核心目的：隔离与保护</h4><p>如果没有隔离，一个进程的指针错误（如野指针）可能会意外地写入或读取另一个进程的数据，导致程序崩溃或数据泄露；恶意程序可以轻易地窃取或破坏其他进程（如银行软件、通讯软件）的敏感信息；一个进程的崩溃可能导致整个系统或其他进程的不稳定。</p>
+<p>通过各自独立的页表映射，它们最终会指向完全不同的物理内存位置，或者其中一个地址可能是无效的。虚拟地址空间像进程的“楚门的世界”，在不同的地方，互不可见，互不影响，都以为自己占有全世界。</p>
+<h4 id="2·简化编程"><a href="#2·简化编程" class="headerlink" title="2·简化编程"></a>2·简化编程</h4><p>对于程序员来说，每个进程都从<strong>相同的起始地址</strong>（例如<code>0x0</code>或<code>0x400000</code>）开始加载代码，拥有连续的堆栈和堆空间。他们无需关心物理内存的实际布局、其他进程占用了哪些内存，或者内存是否足够。虚拟内存系统提供了这种内存抽象，极大地简化了应用程序的开发。</p>
+<h3 id="实现机制：页表"><a href="#实现机制：页表" class="headerlink" title="实现机制：页表"></a>实现机制：页表</h3><p>每个进程都有一个<strong>专属的页表</strong>，由操作系统在创建进程时建立，并存储在物理内存中。CPU中有一个特殊的寄存器（在x86上是<code>CR3</code>，在ARM上是<code>TTBR0</code>等），它指向当前正在运行的进程的页表物理地址。</p>
+<ul>
+<li><strong>上下文切换</strong>：当操作系统调度器从进程A切换到进程B时，一个关键步骤就是将<code>CR3</code>寄存器的值从进程A的页表地址，改为进程B的页表地址。</li>
+<li><strong>地址翻译</strong>：切换后，CPU发出的所有虚拟地址都会通过B进程的页表进行翻译。因此，即使虚拟地址数值相同，经过不同的页表翻译，得到的物理地址也完全不同。</li>
+</ul>
+<p>（页表部分的详解见《页的概念》）</p>
+<h2 id="虚拟地址空间共享区域"><a href="#虚拟地址空间共享区域" class="headerlink" title="虚拟地址空间共享区域"></a>虚拟地址空间共享区域</h2><h3 id="内核空间共享"><a href="#内核空间共享" class="headerlink" title="内核空间共享"></a>内核空间共享</h3><p>在大多数操作系统的内存布局中（如Linux的3:1或4:4分划），每个进程的虚拟地址空间的<strong>高端部分</strong>（例如，在32位系统上最高的1GB）被映射到<strong>操作系统内核的代码和数据</strong>。</p>
+<p><strong>为什么共享？</strong> 内核需要管理<strong>所有进程</strong>，响应系统调用、中断和异常。如果内核空间不共享，每次进程切换到内核态时，都需要切换地址空间，效率极低。共享内核空间使得进入<u><strong>内核态</strong></u>（如执行系统调用）时，地址空间无需切换，访问内核数据结构非常高效。</p>
+<p><strong>如何保护？</strong> 这部分内存的页表项被标记为<strong>特权级访问</strong>（如Ring 0）。用户态进程（Ring 3）无法访问这些页面，一旦尝试就会触发保护异常。因此，逻辑上它映射在每个进程的地址空间里，但物理上它是同一份内核代码，并且受到硬件保护。</p>
+<h3 id="显式内存共享"><a href="#显式内存共享" class="headerlink" title="显式内存共享"></a><u>显式内存</u>共享</h3><p>进程间有时需要高效地通信或共享数据。操作系统提供了显式创建共享内存区域的机制：</p>
+<p><strong>共享内存（数据）</strong>：两个或多个进程可以通过系统调用（如<code>shmget</code>&#x2F;<code>shmat</code>）约定，将各自虚拟地址空间中的不同区域，映射到<strong>同一个物理页框</strong>上。这样，一个进程写入的数据，另一个进程可以立即看到。</p>
+<p><strong>内存映射文件</strong>：多个进程可以将同一个文件映射到自己的地址空间，从而实现基于文件的共享。这常用于共享库。</p>
+<p><strong>(COW)-写时复制</strong>：在<code>fork()</code>创建子进程时，父子进程最初共享所有物理页框（页表项标记为<strong>只读</strong>共享）。当任何一方尝试写入时，才为该进程复制私有副本。这实现了初始状态的高效共享。【belike：你可以在<code>github</code>上找喜欢的文章，但是想要修改需要复制一份用于自己改】</p>
+<h3 id="零页共享"><a href="#零页共享" class="headerlink" title="零页共享"></a>零页共享</h3><h4 id="置零页面（-零页-）"><a href="#置零页面（-零页-）" class="headerlink" title="置零页面（[[零页]]）"></a>置零页面（[[零页]]）</h4><h5 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h5><p>这是物理内存中一个预先分配好的、内容全为零的物理页框。所有进程的逻辑零页在初始时都映射到这个相同的物理页框上。</p>
+<h5 id="使用环境"><a href="#使用环境" class="headerlink" title="使用环境"></a>使用环境</h5><p>当操作系统加载一个程序或创建新进程时，它知道程序的某些部分（如未初始化的<code>.bss</code>段）在逻辑上应该是零。操作系统不会立即为这些全零的页面分配物理内存，而是将它们映射到一个特殊的、全局共享的<strong>零页</strong>。</p>
+<h2 id="地址意义"><a href="#地址意义" class="headerlink" title="地址意义"></a>地址意义</h2><h3 id="物理页框号（PFN）"><a href="#物理页框号（PFN）" class="headerlink" title="物理页框号（PFN）"></a>物理页框号（PFN）</h3><p>例如32位地址：<code>0x00401800</code>，其中<code>0x00401</code>是其高20位，就是物理页框号，称为<strong>页号</strong>，用于定位第几页，找到是哪一个虚拟页，再通过页表查到物理页框。</p>
+<h3 id="页内偏移"><a href="#页内偏移" class="headerlink" title="页内偏移"></a>页内偏移</h3><p>上述32位地址中，<code>0x800</code>是其剩余的低12位，用于定位该<code>0x00401</code>页中的某具体字节。<br>因为一页 &#x3D; 4KB &#x3D; 4096 字节 &#x3D; 2^12，所以需要 12 位来表示页内偏移，取值范围 <strong>0 ~ 4095</strong>。</p>
+<h1 id="映射基本解释"><a href="#映射基本解释" class="headerlink" title="映射基本解释"></a>映射基本解释</h1><h2 id="什么是映射"><a href="#什么是映射" class="headerlink" title="什么是映射"></a>什么是映射</h2><p>映射（mapping）是虚拟内存机制的核心操作，指在<strong>虚拟地址</strong>与<strong>物理资源</strong>之间建立一种对应关系。</p>
+<p>类似在数学函数上的映射，每个y都有至少一个x与之对应（大概这个意思）。</p>
+<p>你可以把映射想象成图书馆的索书号系统。一本《C程序设计语言》作为<strong>物理资源</strong>，它在图书馆书架上有一个<strong>物理位置</strong>——“三楼A区第2排第5格”。但读者不需要知道这个物理位置，只需要在目录系统中查到<strong>索书号</strong>“TP312C&#x2F;123”。映射就是那张对照表：”TP312C&#x2F;123 → 《C程序设计语言》”。至于该书的位置，当你需要时，询问图书管理员，它会告诉你。读者只管用索书号，图书管理员负责维护对照表、分配书籍的位置，处理书籍的调入调出。我们谈”映射”时，<strong>虚拟地址</strong>就是索书号，<strong>物理资源</strong>就是这本书，<strong>物理地址</strong>就是书架的实际位置，操作系统就是那个图书管理员。</p>
+<h2 id="为什么需要映射"><a href="#为什么需要映射" class="headerlink" title="为什么需要映射"></a>为什么需要映射</h2><p><strong>隔离</strong>：每个读者（进程）有自己的”目录册”（虚拟地址空间），即使两本书的索书号相同，它们对应的物理位置可以不同。进程A的 <code>0x00400000</code> 和进程B的 <code>0x00400000</code> 映射到完全不同的物理页——互相看不见、改不了。</p>
+<p><strong>简化</strong>：读者不需要关心书在哪，就像程序不需要关心物理内存的碎片化——哪怕物理内存被切成了一百个小碎块，进程看到的始终是一块连续的、从零开始的虚拟地址空间。（上述的虚拟地址空间特性）</p>
+<p><strong>延迟</strong>：图书馆可以先在目录里登记书的信息，等读者真的来借了——如果书还没从仓库调过来，管理员立刻去调，读者等待片刻即可。这就是缺页异常和延迟分配的本质。</p>
+<p><strong>映射分层分为VMA层和页表</strong>（VMA上有详解，页表见《页的概念》）</p>
+<h2 id="映射分层"><a href="#映射分层" class="headerlink" title="映射分层"></a>映射分层</h2><p>由于在程序运行的整个过程中经历了多次映射，即映射的层次划分较多，此处仅详细解释两个层次的映射，为方便理解后续的匿名和文件映射，详细映射内容另起一文总述。</p>
+<h3 id="区域级：VMA映射"><a href="#区域级：VMA映射" class="headerlink" title="区域级：VMA映射"></a>区域级：VMA映射</h3><p>VMA映射是第四层的映射关系，这一层是内核 <code>execve()</code> 或 <code>mmap</code> 系统调用后，在进程的 <code>mm_struct</code> 里建立的<strong>运行时数据结构</strong>。</p>
+<p><strong>映射关系：</strong></p>
+<p>虚拟地址区间 ↔ <strong>后备存储</strong>（文件 或 匿名&#x2F;零）</p>
+<p>即它建立的是”<strong>虚拟地址区间 ↔ 数据来源</strong>“的对应关系，而<strong>不是</strong>“虚拟地址 ↔ 物理内存”。数据来源可以是：</p>
+<p>​	一个文件（<code>vm_file</code> 指向<code> inode</code>）——<strong>文件映射</strong></p>
+<p>​	没有信息，”无”，即全零（<code>vm_file = NULL</code>）——<strong>匿名映射</strong></p>
+<p>​	两者独立不可转换</p>
+<p><strong>物理内存在这一层完全不出现。</strong> <code>mmap</code> 返回时，VMA 已建立，但 RSS &#x3D; 0，物理页为零。</p>
+<p>比方为在图书馆中使用索书号TP312C&#x2F;123（虚拟地址）能根据”VMA映射“这个列表，查到这本书名为《C程序设计语言》（对应的<strong>数据来源</strong>），至于书的位置，那是页表映射的工作。</p>
+<h3 id="逐页级：页表映射"><a href="#逐页级：页表映射" class="headerlink" title="逐页级：页表映射"></a>逐页级：页表映射</h3><p>这一层才是之前常说的的”虚拟内存 ↔ 物理内存”的关联，告诉你索书号对应的书在哪个具体位置（物理内存地址），但它是<strong>逐页、按需、延迟</strong>建立的。</p>
+<p>想前面说的，VMA只是规划空间的用处，真正的分配则是页表的工作。</p>
+<p>一个页表条目（PTE）记录的是最精确的映射<em>（见《页的概念》）</em></p>
+<h2 id="匿名映射"><a href="#匿名映射" class="headerlink" title="匿名映射"></a>匿名映射</h2><p>分配空白页，比如创建一个空字符数组，其内容为空，创建时在磁盘上无占用，没有物理页。使用时即“凭空给一块0初始化的内存”。</p>
+<p>类似我让他人预留了一张白纸（预留，所以无物理页存在，“白纸”意为着无内容），在管理员那里，写着<code>windfire</code>↔ 白纸（NULL，匿名映射），现在我需要拿到这张白纸写个“A”，于是管理员就给了我一张白纸，我再写，（缺页分配、按需分配）。</p>
+<h2 id="文件映射"><a href="#文件映射" class="headerlink" title="文件映射"></a>文件映射</h2><p>就是关联了磁盘文件的虚拟地址，创建时在本身磁盘上无占用，但是关联的文件在磁盘上存在，注意，磁盘上的文件并不是该虚拟地址的映射位置。使用时分配物理页，并复制磁盘上对应的文件内容到该新物理页。</p>
+<p>同样是我向他人通知了我查看乃至修改一本《高等数学》的需求，注意，这本书只读，在管理员那里写着<code>windfire</code>↔三楼A区第2排第5格（《高等数学》的地址，文件映射），现在我直接需要在《高等数学》第二页的纸查找内容（有查看但无修改需求），这我可以直接看，别人有同样的查看需求可以一起看（共享）；但是我现在想把第二页的微积分改成<code>1+1</code>（修改需求），如果直接涂改原书会影响他人阅读*[我不会这么干的 (￣︶￣) ]*，于是管理员直接将书的第二页复制了一份给我，这一份复制页可读可写（COW-copy on write-写时复制和按需分配）。</p>
+<h3 id="对data段等机制的进一步解释"><a href="#对data段等机制的进一步解释" class="headerlink" title="对data段等机制的进一步解释"></a>对data段等机制的进一步解释</h3><p>以<code>data</code>段和<code>bss</code>段为例，由于突出<code>data</code>与<code>bss</code>的区别，在《分段》中写到，data是在运行时直接分配所有有数据的物理页，但实际上，<code>data</code>是私有文件映射的一种，也遵循按需分配和写时复制的规律，即调用前是没有物理页分配的，有需求时才即时分配。</p>
+<h2 id="映射生命周期示例"><a href="#映射生命周期示例" class="headerlink" title="映射生命周期示例"></a>映射生命周期示例</h2><p>由于我觉得程序堆栈的映射变化好理解一点，所以以下示例以堆映射变化为主。</p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 匿名私有映射 1MB</span></span><br><span class="line">    <span class="type">void</span> *ptr = mmap(<span class="literal">NULL</span>, <span class="number">1024</span> * <span class="number">1024</span>,      <span class="comment">// 1MB</span></span><br><span class="line">                     PROT_READ | PROT_WRITE, <span class="comment">// 可读可写</span></span><br><span class="line">                     MAP_PRIVATE | MAP_ANONYMOUS,</span><br><span class="line">                     <span class="number">-1</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;映射地址: %p&quot;</span>, ptr);  <span class="comment">// 例如输出: 0x7F1234000000</span></span><br><span class="line">    <span class="comment">// 什么也不做，观察</span></span><br><span class="line">    getchar();</span><br><span class="line">    <span class="comment">// 第一次写入 —— 只触及第一个 4KB 页</span></span><br><span class="line">    ((<span class="type">char</span>*)ptr)[<span class="number">0</span>] = <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">    getchar();</span><br><span class="line">    <span class="comment">// 写入第 511 个页（偏移 510 × 4096）</span></span><br><span class="line">    ((<span class="type">char</span>*)ptr)[<span class="number">510</span> * <span class="number">4096</span>] = <span class="string">&#x27;Z&#x27;</span>;</span><br><span class="line">    getchar();</span><br><span class="line">    <span class="comment">// 释放映射</span></span><br><span class="line">    munmap(ptr, <span class="number">1024</span> * <span class="number">1024</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段一"><a href="#阶段一" class="headerlink" title="阶段一"></a>阶段一</h3><p><strong><code>mmap</code> 调用返回之后，首次写入之前</strong></p>
+<p>内核已经完成了 VMA 的插入。此时进程的 VMA 树中新增了一个节点：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">VMA: [0x7F1234000000, 0x7F1234100000)  1MB</span><br><span class="line">     匿名私有  可读写  vm_file=NULL</span><br></pre></td></tr></table></figure>
+
+<p>但页表中，对应这 1MB 范围的全部 256 个 PTE（1MB &#x2F; 4KB &#x3D; 256 页），<strong>P 位全部为 0</strong>。</p>
+<p>此时 <code>ptr</code> 是一个合法的虚拟地址指针——可以赋值、比较、作为参数传递。但它指向的 256 个虚拟页，没有一个真正对应物理内存。内核为这段映射消耗的物理内存，仅仅是 VMA 节点本身（约 100 多字节）以及多级页表中可能新建的中间级页表页。</p>
+<p>可以通过 <code>/proc//smaps</code> 验证：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">7f1234000000-7f1234100000 rw-p 00000000 00:00 0</span><br><span class="line">Size:               1024 kB      ← VMA 范围 1MB</span><br><span class="line">Rss:                   0 kB      ← RSS = 0，物理内存零占用</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段二"><a href="#阶段二" class="headerlink" title="阶段二"></a>阶段二</h3><p><strong>第一次写入第 0 页</strong></p>
+<p><code>((char*)ptr)[0] = &#39;A&#39;;</code> 这条 C 语句在 CPU 层面是一条 <code>mov</code> 指令。</p>
+<p>CPU 发出写操作，MMU 查页表：</p>
+<ol>
+<li>虚拟地址 <code>0x7F1234000000</code> → 四级页表遍历。</li>
+<li>在某一级遇到 P 位为 0 的条目 → <strong>缺页异常</strong>（page fault）。</li>
+<li>CPU 切换到内核态，执行缺页异常处理程序。</li>
+<li>内核在 VMA 树中查找 <code>0x7F1234000000</code> → 命中刚才那个匿名私有 VMA。</li>
+<li>检查访问类型（写操作 vs VMA 的 VM_WRITE）→ 合法。</li>
+<li>VMA 的 <code>vm_file == NULL</code>（匿名映射）→ 分配一个空闲物理页（如物理地址 <code>0x2A3B1000</code>）。</li>
+<li>将该物理页全部填零（安全原因：不能泄漏前一个进程的残留数据）。</li>
+<li>填充该虚拟页的 PTE：物理页框号 &#x3D; <code>0x2A3B1</code>（右移 12 位），P&#x3D;1，R&#x2F;W&#x3D;1，NX&#x3D;1（不可执行）。</li>
+<li>返回用户态，CPU 重新执行那条 <code>mov</code> 指令 → MMU 再次查页表 → P&#x3D;1 → 翻译成功 → 写入 <code>0x2A3B1000</code>。</li>
+</ol>
+<p>此时进程的物理内存消耗增加了 <strong>4KB</strong>（一个物理页）。检查 <code>/proc//smaps</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Rss:                   4 kB      ← 增加了 4KB</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段三"><a href="#阶段三" class="headerlink" title="阶段三"></a>阶段三</h3><p><strong>写入第 511 个页</strong></p>
+<p><code>((char*)ptr)[510 * 4096] = &#39;Z&#39;;</code> 访问的是虚拟地址 <code>0x7F1234000000 + 510 × 4096 = 0x7F123407F800</code>，位于这 1MB 中的第 510 个页（从 0 计数的话）。</p>
+<p>过程与阶段二完全相同——独立的缺页异常，独立分配另一个物理页，独立填充另一个 PTE。RSS 增加到 8KB。</p>
+<p><strong>关键观察</strong>：1MB 的 VMA 覆盖 256 个虚拟页，但现在只有第 0 页和第 510 页有物理内存。第 1<del>509 页、第 511</del>255 页仍然是 VMA 登记好、页表为空的”空地”。从 1MB VMA 的视角看，物理页是<strong>稀疏分布</strong>的——这就是”映射不是一次性完成”的直观体现。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">第0页 [████]  ← 已映射（物理页A）</span><br><span class="line">第1页 [    ]  ← 无映射</span><br><span class="line">...</span><br><span class="line">第509页[    ]  ← 无映射</span><br><span class="line">第510页[████] ← 已映射（物理页B）</span><br><span class="line">...</span><br><span class="line">第255页[    ]  ← 无映射</span><br></pre></td></tr></table></figure>
+
+<p>RSS &#x3D; 8KB，VMA 范围 &#x3D; 1MB。</p>
+<h3 id="阶段四"><a href="#阶段四" class="headerlink" title="阶段四"></a>阶段四</h3><p><strong><code>munmap</code></strong></p>
+<p><code>munmap(ptr, 1024 * 1024);</code> 做的是阶段一的反操作——逐一撤销。</p>
+<ol>
+<li>内核在 VMA 树中找到覆盖 <code>[0x7F1234000000, 0x7F1234100000)</code> 的 VMA，删除或缩小它。</li>
+<li>遍历该范围内所有 PTE——找到 P 位为 1 的条目（第 0 页和第 510 页），将对应的物理页归还给空闲物理页池。</li>
+<li>清空所有相关 PTE（P 位置 0）。</li>
+<li>RSS 回到 0。VMA 移除。</li>
+</ol>
+<p>整个过程下来，内核始终精确地追踪”谁（哪个 VMA）拥有这页”以及”这页的物理内存在哪”。VMA 和页表从未脱节——修改必然是同步的。</p>
+<h1 id="特定名词解释"><a href="#特定名词解释" class="headerlink" title="特定名词解释"></a>特定名词解释</h1><h2 id="内核态"><a href="#内核态" class="headerlink" title="内核态"></a>内核态</h2><p>内核态是操作系统的一种运行模式，具有对系统硬件和资源的完全访问权限，主要用于执行特权操作和管理系统资源。</p>
+<p>深入解释涉及内核知识，此处不作深入说明。</p>
+<h2 id="显式内存"><a href="#显式内存" class="headerlink" title="显式内存"></a>显式内存</h2><p>显式内存共享是操作系统提供的一种高级进程间通信机制。它允许两个或多个独立的进程，通过主动调用系统API，将各自虚拟地址空间中的一块区域，映射到<strong>同一块物理内存</strong>上。这样，一个进程写入这块内存的数据，另一个进程可以立即看到，从而实现高效、直接的数据交换。</p>
+<p>同上不作深入说明。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 匿名私有映射 1MB</span></span><br><span class="line">    <span class="type">void</span> *ptr = mmap(<span class="literal">NULL</span>, <span class="number">1024</span> * <span class="number">1024</span>,      <span class="comment">// 1MB</span></span><br><span class="line">                     PROT_READ | PROT_WRITE, <span class="comment">// 可读可写</span></span><br><span class="line">                     MAP_PRIVATE | MAP_ANONYMOUS,</span><br><span class="line">                     <span class="number">-1</span>, <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;映射地址: %p</span></span><br><span class="line"><span class="string">&quot;</span>, ptr);  <span class="comment">// 例如输出: 0x7F1234000000</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 什么也不做，观察</span></span><br><span class="line">    getchar();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 第一次写入 —— 只触及第一个 4KB 页</span></span><br><span class="line">    ((<span class="type">char</span>*)ptr)[<span class="number">0</span>] = <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">    </span><br><span class="line">    getchar();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 写入第 511 个页（偏移 510 × 4096）</span></span><br><span class="line">    ((<span class="type">char</span>*)ptr)[<span class="number">510</span> * <span class="number">4096</span>] = <span class="string">&#x27;Z&#x27;</span>;人情</span><br><span class="line">    </span><br><span class="line">    getchar();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 释放映射</span></span><br><span class="line">    munmap(ptr, <span class="number">1024</span> * <span class="number">1024</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">windfire</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/posts/f79e4123/">http://example.com/posts/f79e4123/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="external nofollow noopener noreferrer">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">windfire's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/pwn/">pwn</a><a class="post-meta__tags" href="/tags/%E5%86%85%E5%AD%98/">内存</a><a class="post-meta__tags" href="/tags/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">虚拟内存</a></div><div class="post-share"><div class="social-share" data-image="/img/Default_cover.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/6cd4c381/" title="物理内存"><img class="cover" src="/img/Default_cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">物理内存</div></div><div class="info-2"><div class="info-item-1">定义内存分配：计算机里的”画地盘”内存分配，简单来说就是程序向操作系统申请一块内存空间，用来存放数据。 分类三种分配方式：按时间划分内存分配不是只有一种。根据”什么时候圈地”来划分，可以分成三类：静态分配（编译时）、自动分配（运行时-栈）、动态分配（运行时-堆）。 以下详解 静态内存分配静态内存分配的核心就一句话：编译器在编译阶段就知道这块数据需要多大、放在哪里，程序还没开始跑，地址和大小都已经写死在可执行文件（ELF）里了。 你盖一栋房子。承重墙的位置和尺寸是画在设计图上的，地基一浇就固定下来，整栋房子的寿命有多长，这堵墙就立多久。你不能在房子盖好之后说”我觉得这堵墙挡住了阳光，拆了吧...</div></div></div></a><a class="pagination-related" href="/posts/65de5b3f/" title="页的概念"><img class="cover" src="/img/Default_cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">页的概念</div></div><div class="info-2"><div class="info-item-1">看到页，我首先就会联想到书，而页的定义与书籍的页也的确有相似的点。 页的定义页（Page）是虚拟内存管理中的最小单位，通常大小为 4KB（4096 字节），就像一本每一页都有且只有4096个字母的书。无论操作系统做地址翻译、权限保护，还是把内存换入换出磁盘，一切操作都以”页”为粒度进行——不存在比页更细的操作单元。 页的大小你可能会问：既然故事的章节有长有短（对应分段中的 text 段、data 段、堆、栈），为什么不让每一”页”的大小跟着内容走？那样不是更自然吗？ 用书的比喻来回答：如果每页的字数不固定——第 1 章 2000 字，第 2 章 15000 字——书架上的格子就必须做成不...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/bc54abb5/" title="变量定义相关"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">变量定义相关</div></div><div class="info-2"><div class="info-item-1">Global Variable 代码示例1234567//全局变量int globalVar = 10;          // 定义在所有函数之外static int fileStatic = 20;  // 用 static 限制的全局变量（见下文）void func() &#123;    globalVar++;   // 全局变量可在任意函数中访问&#125;  作用域作用域：从定义处开始到文件末尾的整个源文件。通过 extern 声明，可以被其他源文件访问（默认具有外部链接属性）。 生命周期生命周期与整个程序的运行周期一致——程序启动时分配内存并初始化，程序结束时销毁。 位置...</div></div></div></a><a class="pagination-related" href="/posts/6cd4c381/" title="物理内存"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">物理内存</div></div><div class="info-2"><div class="info-item-1">定义内存分配：计算机里的”画地盘”内存分配，简单来说就是程序向操作系统申请一块内存空间，用来存放数据。 分类三种分配方式：按时间划分内存分配不是只有一种。根据”什么时候圈地”来划分，可以分成三类：静态分配（编译时）、自动分配（运行时-栈）、动态分配（运行时-堆）。 以下详解 静态内存分配静态内存分配的核心就一句话：编译器在编译阶段就知道这块数据需要多大、放在哪里，程序还没开始跑，地址和大小都已经写死在可执行文件（ELF）里了。 你盖一栋房子。承重墙的位置和尺寸是画在设计图上的，地基一浇就固定下来，整栋房子的寿命有多长，这堵墙就立多久。你不能在房子盖好之后说”我觉得这堵墙挡住了阳光，拆了吧...</div></div></div></a><a class="pagination-related" href="/posts/980f4350/" title="分段"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">分段</div></div><div class="info-2"><div class="info-item-1">什么是程序分段程序分段，通常指的是操作系统和计算机硬件为了更有效地管理内存而采用的一种技术，它把一个程序（或进程）划分成几个逻辑上独立的段。 想象一套本草纲目，不分段的程序就是一本本连续印刷，没有目录，没有分类，也没有分章节的书，想找到水部中的某个草药的某个药性，难度可想而知，但是为什么现实我们能轻松找到水部，因为目录，因为分章节，分纲目，而分段就相当于目录中的“第几章”。 为什么要分段1·逻辑清晰与管理 程序本身就包含不同的逻辑单元，如代码（指令）、数据、堆（动态分配的内存）、栈（存储局部变量和函数调用的内存），分别体现为text段、data段、堆（Heap）、栈（Stack）以及BS...</div></div></div></a><a class="pagination-related" href="/posts/65de5b3f/" title="页的概念"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">页的概念</div></div><div class="info-2"><div class="info-item-1">看到页，我首先就会联想到书，而页的定义与书籍的页也的确有相似的点。 页的定义页（Page）是虚拟内存管理中的最小单位，通常大小为 4KB（4096 字节），就像一本每一页都有且只有4096个字母的书。无论操作系统做地址翻译、权限保护，还是把内存换入换出磁盘，一切操作都以”页”为粒度进行——不存在比页更细的操作单元。 页的大小你可能会问：既然故事的章节有长有短（对应分段中的 text 段、data 段、堆、栈），为什么不让每一”页”的大小跟着内容走？那样不是更自然吗？ 用书的比喻来回答：如果每页的字数不固定——第 1 章 2000 字，第 2 章 15000 字——书架上的格子就必须做成不...</div></div></div></a><a class="pagination-related" href="/posts/4f421bd2/" title="寻址方式(x86)"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">寻址方式(x86)</div></div><div class="info-2"><div class="info-item-1">注：以x86系统为例。完整示例代码段在文后。 立即寻址(立即数)Immediate Addressing 操作数直接以常数形式编码在指令中，不需要访问任何寄存器或内存。 12345mov     eax, 0Bh        ; eax = 0xBadd     eax, 1BF48h      ; eax = eax + 0x1BF48sub     eax, 1            ; eax = eax - 1mov     edx, 2            ; edx = 2mov     eax, 4            ; eax = 4  特点：  速度最快，常数在...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/Avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info-name">windfire</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="external nofollow noopener noreferrer" href="https://wind-s-fire.github.io/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89"><span class="toc-number">1.</span> <span class="toc-text">定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">核心机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#VMA-%E7%9A%84%E6%9D%A5%E6%BA%90"><span class="toc-number">2.1.</span> <span class="toc-text">VMA 的来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VMA%E6%9F%A5%E7%9C%8B"><span class="toc-number">2.2.</span> <span class="toc-text">VMA查看</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E9%87%8A%E4%B9%89"><span class="toc-number">2.2.1.</span> <span class="toc-text">参数释义</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E4%B8%80%EF%BC%9A%E5%9C%B0%E5%9D%80%E8%8C%83%E5%9B%B4"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">字段一：地址范围</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E4%BA%8C%EF%BC%9A%E6%9D%83%E9%99%90"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">字段二：权限</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E4%B8%89%EF%BC%9A%E5%81%8F%E7%A7%BB%E9%87%8F"><span class="toc-number">2.2.1.3.</span> <span class="toc-text">字段三：偏移量</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E5%9B%9B%EF%BC%9A%E8%AE%BE%E5%A4%87%E5%8F%B7"><span class="toc-number">2.2.1.4.</span> <span class="toc-text">字段四：设备号</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E4%BA%94%EF%BC%9Ainode"><span class="toc-number">2.2.1.5.</span> <span class="toc-text">字段五：inode</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E5%85%AD%EF%BC%9A%E8%B7%AF%E5%BE%84"><span class="toc-number">2.2.1.6.</span> <span class="toc-text">字段六：路径</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VMA%E8%BF%90%E8%A1%8C"><span class="toc-number">2.3.</span> <span class="toc-text">VMA运行</span></a></li></ol></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="toc-number"></span> <span class="toc-text">虚拟地址空间</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89-1"><span class="toc-number">1.</span> <span class="toc-text">定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="toc-number">2.</span> <span class="toc-text">进程的虚拟地址空间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%92%E5%88%86"><span class="toc-number">2.1.</span> <span class="toc-text">划分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E7%9A%84"><span class="toc-number">2.2.</span> <span class="toc-text">目的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%C2%B7%E6%A0%B8%E5%BF%83%E7%9B%AE%E7%9A%84%EF%BC%9A%E9%9A%94%E7%A6%BB%E4%B8%8E%E4%BF%9D%E6%8A%A4"><span class="toc-number">2.2.1.</span> <span class="toc-text">1·核心目的：隔离与保护</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%C2%B7%E7%AE%80%E5%8C%96%E7%BC%96%E7%A8%8B"><span class="toc-number">2.2.2.</span> <span class="toc-text">2·简化编程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%9C%BA%E5%88%B6%EF%BC%9A%E9%A1%B5%E8%A1%A8"><span class="toc-number">2.3.</span> <span class="toc-text">实现机制：页表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%85%B1%E4%BA%AB%E5%8C%BA%E5%9F%9F"><span class="toc-number">3.</span> <span class="toc-text">虚拟地址空间共享区域</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%A9%BA%E9%97%B4%E5%85%B1%E4%BA%AB"><span class="toc-number">3.1.</span> <span class="toc-text">内核空间共享</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%98%BE%E5%BC%8F%E5%86%85%E5%AD%98%E5%85%B1%E4%BA%AB"><span class="toc-number">3.2.</span> <span class="toc-text">显式内存共享</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9B%B6%E9%A1%B5%E5%85%B1%E4%BA%AB"><span class="toc-number">3.3.</span> <span class="toc-text">零页共享</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BD%AE%E9%9B%B6%E9%A1%B5%E9%9D%A2%EF%BC%88-%E9%9B%B6%E9%A1%B5-%EF%BC%89"><span class="toc-number">3.3.1.</span> <span class="toc-text">置零页面（[[零页]]）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">3.3.1.1.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%8E%AF%E5%A2%83"><span class="toc-number">3.3.1.2.</span> <span class="toc-text">使用环境</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%B0%E5%9D%80%E6%84%8F%E4%B9%89"><span class="toc-number">4.</span> <span class="toc-text">地址意义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E9%A1%B5%E6%A1%86%E5%8F%B7%EF%BC%88PFN%EF%BC%89"><span class="toc-number">4.1.</span> <span class="toc-text">物理页框号（PFN）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E5%86%85%E5%81%8F%E7%A7%BB"><span class="toc-number">4.2.</span> <span class="toc-text">页内偏移</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%98%A0%E5%B0%84%E5%9F%BA%E6%9C%AC%E8%A7%A3%E9%87%8A"><span class="toc-number"></span> <span class="toc-text">映射基本解释</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%98%A0%E5%B0%84"><span class="toc-number">1.</span> <span class="toc-text">什么是映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%98%A0%E5%B0%84"><span class="toc-number">2.</span> <span class="toc-text">为什么需要映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%A0%E5%B0%84%E5%88%86%E5%B1%82"><span class="toc-number">3.</span> <span class="toc-text">映射分层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E5%9F%9F%E7%BA%A7%EF%BC%9AVMA%E6%98%A0%E5%B0%84"><span class="toc-number">3.1.</span> <span class="toc-text">区域级：VMA映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%90%E9%A1%B5%E7%BA%A7%EF%BC%9A%E9%A1%B5%E8%A1%A8%E6%98%A0%E5%B0%84"><span class="toc-number">3.2.</span> <span class="toc-text">逐页级：页表映射</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%BF%E5%90%8D%E6%98%A0%E5%B0%84"><span class="toc-number">4.</span> <span class="toc-text">匿名映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E6%98%A0%E5%B0%84"><span class="toc-number">5.</span> <span class="toc-text">文件映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9data%E6%AE%B5%E7%AD%89%E6%9C%BA%E5%88%B6%E7%9A%84%E8%BF%9B%E4%B8%80%E6%AD%A5%E8%A7%A3%E9%87%8A"><span class="toc-number">5.1.</span> <span class="toc-text">对data段等机制的进一步解释</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%A0%E5%B0%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.</span> <span class="toc-text">映射生命周期示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81"><span class="toc-number">6.1.</span> <span class="toc-text">代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B6%E6%AE%B5%E4%B8%80"><span class="toc-number">6.2.</span> <span class="toc-text">阶段一</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B6%E6%AE%B5%E4%BA%8C"><span class="toc-number">6.3.</span> <span class="toc-text">阶段二</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B6%E6%AE%B5%E4%B8%89"><span class="toc-number">6.4.</span> <span class="toc-text">阶段三</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B6%E6%AE%B5%E5%9B%9B"><span class="toc-number">6.5.</span> <span class="toc-text">阶段四</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%89%B9%E5%AE%9A%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="toc-number"></span> <span class="toc-text">特定名词解释</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E6%80%81"><span class="toc-number">1.</span> <span class="toc-text">内核态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%BE%E5%BC%8F%E5%86%85%E5%AD%98"><span class="toc-number">2.</span> <span class="toc-text">显式内存</span></a></li></ol></li></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/980f4350/" title="分段"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="分段"></a><div class="content"><a class="title" href="/posts/980f4350/" title="分段">分段</a><time datetime="2026-11-10T04:00:00.000Z" title="发表于 2026-11-10 12:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/bc54abb5/" title="变量定义相关"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="变量定义相关"></a><div class="content"><a class="title" href="/posts/bc54abb5/" title="变量定义相关">变量定义相关</a><time datetime="2026-11-10T03:00:00.000Z" title="发表于 2026-11-10 11:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/4f421bd2/" title="寻址方式(x86)"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="寻址方式(x86)"></a><div class="content"><a class="title" href="/posts/4f421bd2/" title="寻址方式(x86)">寻址方式(x86)</a><time datetime="2026-11-10T02:00:00.000Z" title="发表于 2026-11-10 10:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/6cd4c381/" title="物理内存"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="物理内存"></a><div class="content"><a class="title" href="/posts/6cd4c381/" title="物理内存">物理内存</a><time datetime="2026-11-10T01:00:00.000Z" title="发表于 2026-11-10 09:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f79e4123/" title="虚拟内存"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="虚拟内存"></a><div class="content"><a class="title" href="/posts/f79e4123/" title="虚拟内存">虚拟内存</a><time datetime="2026-11-10T00:00:00.000Z" title="发表于 2026-11-10 08:00:00">2026-11-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By windfire</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="想看什么，嘻~" type="text"></div><hr><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_swiper_injector_config(){
+    var parent_div_git = document.getElementById('recent-posts');
+    var item_html = '<div class="recent-post-item" style="height: auto;width: 100%"><div class="blog-slider swiper-container-fade swiper-container-horizontal" id="swiper_container"><div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms;"></div><div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div></div></div>';
+    console.log('已挂载butterfly_swiper')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'undefined'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_swiper_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_swiper_injector_config();
+  }
+  </script><script defer src="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.js"></script><script defer data-pjax src="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper_init.js"></script><!-- hexo injector body_end end --></body></html>

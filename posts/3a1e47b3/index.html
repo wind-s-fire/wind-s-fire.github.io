@@ -1,0 +1,295 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>虚拟机命令 | windfire's blog</title><meta name="author" content="windfire"><meta name="copyright" content="windfire"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f2f8ff"><meta name="description" content="对目录操作列出目录内容12ls		#列出文件ls -la	#显示隐藏文件及详细信息  切换目录显示当前路径1pwd  创建目录1mkdir new_folder  删除空目录1rmdir empty_folder  删除文件&#x2F;目录12rm file.txtrm -rf folder&#x2F;  对文件基础操作创建文件1touch source.txt  1touch ~&#x2F;Desktop&#x2F;sour">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟机命令">
+<meta property="og:url" content="http://example.com/posts/3a1e47b3/index.html">
+<meta property="og:site_name" content="windfire&#39;s blog">
+<meta property="og:description" content="对目录操作列出目录内容12ls		#列出文件ls -la	#显示隐藏文件及详细信息  切换目录显示当前路径1pwd  创建目录1mkdir new_folder  删除空目录1rmdir empty_folder  删除文件&#x2F;目录12rm file.txtrm -rf folder&#x2F;  对文件基础操作创建文件1touch source.txt  1touch ~&#x2F;Desktop&#x2F;sour">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/Default_cover.jpg">
+<meta property="article:published_time" content="2026-11-09T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-09T20:00:00.000Z">
+<meta property="article:author" content="windfire">
+<meta property="article:tag" content="工具">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="命令">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/Default_cover.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "虚拟机命令",
+  "url": "http://example.com/posts/3a1e47b3/",
+  "image": "http://example.com/img/Default_cover.jpg",
+  "datePublished": "2026-11-09T20:00:00.000Z",
+  "dateModified": "2026-11-09T20:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "windfire",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/Website_icon.jpg"><link rel="canonical" href="http://example.com/posts/3a1e47b3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#112f4b')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f2f8ff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":300,"languages":{"author":"作者: windfire","link":"链接: ","source":"来源: windfire's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '虚拟机命令',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiperstyle.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/Website_Background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/Avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/comments/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-comment-dots"></i><span> 说说</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/Default_cover.jpg);"><nav id="nav"><!-- 左侧博客信息区域--><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/Website_icon.jpg" alt="Logo"><span class="site-name">windfire's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">虚拟机命令</span></a></span><!-- 新增的导航菜单容器（居中布局关键）--><div id="nav-menus-container"><!-- 菜单主体部分--><div id="menus"> <!-- 菜单项--><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/comments/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-comment-dots"></i><span> 说说</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div id="nav-right-container"><!-- 搜索按钮--><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><!-- 移动端汉堡菜单按钮（保持原位置）--><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">虚拟机命令</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-09T20:00:00.000Z" title="发表于 2026-11-10 04:00:00">2026-11-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-09T20:00:00.000Z" title="更新于 2026-11-10 04:00:00">2026-11-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/tools/">tools</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id data-flag-title><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="对目录操作"><a href="#对目录操作" class="headerlink" title="对目录操作"></a>对目录操作</h2><h5 id="列出目录内容"><a href="#列出目录内容" class="headerlink" title="列出目录内容"></a>列出目录内容</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span>		<span class="comment">#列出文件</span></span><br><span class="line"><span class="built_in">ls</span> -la	<span class="comment">#显示隐藏文件及详细信息</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="切换目录"><a href="#切换目录" class="headerlink" title="切换目录"></a>切换目录</h5><h5 id="显示当前路径"><a href="#显示当前路径" class="headerlink" title="显示当前路径"></a>显示当前路径</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">pwd</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="创建目录"><a href="#创建目录" class="headerlink" title="创建目录"></a>创建目录</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> new_folder</span><br></pre></td></tr></table></figure>
+
+<h5 id="删除空目录"><a href="#删除空目录" class="headerlink" title="删除空目录"></a>删除空目录</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rmdir</span> empty_folder</span><br></pre></td></tr></table></figure>
+
+<h5 id="删除文件-目录"><a href="#删除文件-目录" class="headerlink" title="删除文件&#x2F;目录"></a>删除文件&#x2F;目录</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> file.txt</span><br><span class="line"><span class="built_in">rm</span> -rf folder/</span><br></pre></td></tr></table></figure>
+
+<h2 id="对文件基础操作"><a href="#对文件基础操作" class="headerlink" title="对文件基础操作"></a>对文件基础操作</h2><h5 id="创建文件"><a href="#创建文件" class="headerlink" title="创建文件"></a>创建文件</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">touch</span> source.txt</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">touch</span> ~/Desktop/source</span><br></pre></td></tr></table></figure>
+
+<h5 id="创建文件并写入内容"><a href="#创建文件并写入内容" class="headerlink" title="创建文件并写入内容"></a>创建文件并写入内容</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hello world&quot;</span> &gt; ~/Desktop/source.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="向根目录中创建文件"><a href="#向根目录中创建文件" class="headerlink" title="向根目录中创建文件"></a>向根目录中创建文件</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">touch</span> /文件名.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="向根目录中创建并写入内容"><a href="#向根目录中创建并写入内容" class="headerlink" title="向根目录中创建并写入内容"></a>向根目录中创建并写入内容</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> bash -c <span class="string">&#x27;echo &quot;内容&quot; &gt; /文件名.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> a.txt b.txt	<span class="comment">#复制一份a命名为b</span></span><br><span class="line"><span class="built_in">cp</span> -r dir1 dir2	</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="编译文件"><a href="#编译文件" class="headerlink" title="编译文件"></a>编译文件</h2><h4 id="对-asm文件编译"><a href="#对-asm文件编译" class="headerlink" title="对.asm文件编译"></a>对<code>.asm</code>文件编译</h4><p><code>.asm</code>文件为汇编代码文件</p>
+<h5 id="elf（Intel语法，NASM）"><a href="#elf（Intel语法，NASM）" class="headerlink" title="elf（Intel语法，NASM）"></a><code>elf</code>（Intel语法，NASM）</h5><p>32位</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 汇编：.asm → .o</span></span><br><span class="line">nasm -f elf32 source.asm -o source.o</span><br><span class="line"><span class="comment"># 链接：.o → 可执行文件</span></span><br><span class="line">ld -m elf_i386 source.o -o output</span><br></pre></td></tr></table></figure>
+
+<p>64位</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 汇编</span></span><br><span class="line">nasm -f elf64 source.asm -o source.o</span><br><span class="line"><span class="comment"># 链接</span></span><br><span class="line">ld source.o -o output</span><br></pre></td></tr></table></figure>
+
+<h5 id="elf（AT-T语法，GAS-GCC）"><a href="#elf（AT-T语法，GAS-GCC）" class="headerlink" title="elf（AT&amp;T语法，GAS+GCC）"></a><code>elf</code>（AT&amp;T语法，GAS+GCC）</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 汇编并链接，一步到位（无C库依赖）</span></span><br><span class="line">gcc -nostdlib -o output source.asm</span><br></pre></td></tr></table></figure>
+
+<p>分步</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 汇编</span></span><br><span class="line">as source.asm -o source.o</span><br><span class="line"><span class="comment"># 链接</span></span><br><span class="line">ld source.o -o output</span><br></pre></td></tr></table></figure>
+
+<h5 id="elf（调用C标准库，NASM-GCC链接）"><a href="#elf（调用C标准库，NASM-GCC链接）" class="headerlink" title="elf（调用C标准库，NASM+GCC链接）"></a><code>elf</code>（调用C标准库，NASM+GCC链接）</h5><p>如果汇编代码中调用了 <code>printf</code> 等 C 标准库函数，需要用 <code>gcc</code> 链接：</p>
+<p>32位</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nasm -f elf32 source.asm -o source.o</span><br><span class="line">gcc -m32 source.o -o output</span><br></pre></td></tr></table></figure>
+
+<p>64位</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nasm -f elf64 source.asm -o source.o</span><br><span class="line">gcc source.o -o output</span><br></pre></td></tr></table></figure>
+
+<h5 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h5><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nasm -f elf32</code></td>
+<td>生成 32 位 ELF 格式目标文件</td>
+</tr>
+<tr>
+<td><code>nasm -f elf64</code></td>
+<td>生成 64 位 ELF 格式目标文件</td>
+</tr>
+<tr>
+<td><code>ld -m elf_i386</code></td>
+<td>指定链接为 32 位 ELF 可执行文件</td>
+</tr>
+<tr>
+<td><code>gcc -m32</code></td>
+<td>编译&#x2F;链接为 32 位程序</td>
+</tr>
+<tr>
+<td><code>gcc -nostdlib</code></td>
+<td>不链接 C 标准库（纯汇编不需要）</td>
+</tr>
+</tbody></table>
+<h4 id="对-s文件编译"><a href="#对-s文件编译" class="headerlink" title="对.s文件编译"></a>对<code>.s</code>文件编译</h4><p><code>.s</code>文件是预编译后的纯汇编文件（AT&amp;T语法），使用GCC一步完成汇编和链接。</p>
+<h5 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -o output source.s</span><br></pre></td></tr></table></figure>
+
+<p>这一条命令内部自动完成了：汇编（<code>.s</code> → <code>.o</code>）→ 链接（<code>.o</code> → 可执行文件）两步。</p>
+<p>分步</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 汇编</span></span><br><span class="line">gcc -c source.s -o source.o</span><br><span class="line"><span class="comment"># 2. 链接</span></span><br><span class="line">gcc source.o -o output</span><br></pre></td></tr></table></figure>
+
+<h5 id="关闭所有保护"><a href="#关闭所有保护" class="headerlink" title="关闭所有保护"></a>关闭所有保护</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭所有保护</span></span><br><span class="line">gcc -o vuln vuln.s -fno-stack-protector -z execstack -no-pie -z norelro</span><br></pre></td></tr></table></figure>
+
+<h5 id="32位编译"><a href="#32位编译" class="headerlink" title="32位编译"></a>32位编译</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 32 位编译</span></span><br><span class="line">gcc -m32 -o vuln vuln.s</span><br></pre></td></tr></table></figure>
+
+<h5 id="纯汇编（无-C-库依赖）"><a href="#纯汇编（无-C-库依赖）" class="headerlink" title="纯汇编（无 C 库依赖）"></a>纯汇编（无 C 库依赖）</h5><p>如果汇编中写的是 <code>_start</code> 且不调用任何 <code>libc</code> 函数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -nostdlib -o output source.s</span><br></pre></td></tr></table></figure>
+
+<p>否则链接器会默认寻找 <code>main</code> 函数而报错：</p>
+<p>​	<code>undefined reference to &#39;main&#39;</code></p>
+<h5 id="S和-s后缀的区别"><a href="#S和-s后缀的区别" class="headerlink" title=".S和.s后缀的区别"></a><code>.S</code>和<code>.s</code>后缀的区别</h5><table>
+<thead>
+<tr>
+<th>后缀</th>
+<th>含义</th>
+<th>使用方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.S</code>（大写）</td>
+<td>需<strong>预处理</strong>的汇编文件（可含 <code>#include</code>、<code>#define</code>）</td>
+<td><code>gcc -o output source.S</code></td>
+</tr>
+<tr>
+<td><code>.s</code>（小写）</td>
+<td>已预处理完毕的纯汇编</td>
+<td><code>gcc -o output source.s</code></td>
+</tr>
+</tbody></table>
+<p>两者编译命令完全相同，<code>gcc</code> 会根据后缀自动判断是否需要先调用预处理器。</p>
+<h1 id="（有待补充）"><a href="#（有待补充）" class="headerlink" title="（有待补充）"></a><em>（有待补充）</em></h1></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">windfire</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/posts/3a1e47b3/">http://example.com/posts/3a1e47b3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="external nofollow noopener noreferrer">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">windfire's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B7%A5%E5%85%B7/">工具</a><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/%E5%91%BD%E4%BB%A4/">命令</a></div><div class="post-share"><div class="social-share" data-image="/img/Default_cover.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/545a6120/" title="VMware"><img class="cover" src="/img/Default_cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">VMware</div></div><div class="info-2"><div class="info-item-1">一、下载VMware全名：VMware Workstation Pro 在浏览器直接搜索可以得到官网和大量安装教程，此文以作者安装的过程作主要路径。 下载渠道1、官网下载：浏览器搜索VMware workstation，易得网页：https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion，即官网（附图如下）。 优点：不容易被骗；版本可自选； 缺点：官网英文不认识、不熟；VMware官网产品和软件版本太多，难找，选择困难；下载速度慢，不稳定； 2、网盘下载：依旧浏览器搜索VMware workstati...</div></div></div></a><a class="pagination-related" href="/posts/4a17b156/" title="Hello World"><img class="cover" src="/img/Default_cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Hello World</div></div><div class="info-2"><div class="info-item-1">Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick StartCreate a new post1$ hexo new &quot;My New Post&quot;  More info: Writing Run server1$ hexo ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/cd988ed5/" title="Docker使用"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">Docker使用</div></div><div class="info-2"><div class="info-item-1">概念Dockerfile制作镜像的图纸，详细介绍了如何制作一个好看的双黄红豆沙月饼模具； 镜像月饼模子，一个镜像可以压出千千万万个双蛋黄红豆沙月饼； 容器美味的双黄红豆沙月饼，由一个镜像可以得到许多容器； 镜像操作拉取镜像12docker pull docker.io/library/ngine:latestdocker pull registry:仓库地址or注册表/namespace:命名空间(作者名)/tag:标签(版本号)  以上仓库和命名若为官方仓库可以不写，tag为latest或干脆不写则默认最新版本，最终简化如下： 1docker pull nginx  从Docker官方...</div></div></div></a><a class="pagination-related" href="/posts/545a6120/" title="VMware"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">VMware</div></div><div class="info-2"><div class="info-item-1">一、下载VMware全名：VMware Workstation Pro 在浏览器直接搜索可以得到官网和大量安装教程，此文以作者安装的过程作主要路径。 下载渠道1、官网下载：浏览器搜索VMware workstation，易得网页：https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion，即官网（附图如下）。 优点：不容易被骗；版本可自选； 缺点：官网英文不认识、不熟；VMware官网产品和软件版本太多，难找，选择困难；下载速度慢，不稳定； 2、网盘下载：依旧浏览器搜索VMware workstati...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/Avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info-name">windfire</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="external nofollow noopener noreferrer" href="https://wind-s-fire.github.io/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E7%9B%AE%E5%BD%95%E6%93%8D%E4%BD%9C"><span class="toc-number">1.</span> <span class="toc-text">对目录操作</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%97%E5%87%BA%E7%9B%AE%E5%BD%95%E5%86%85%E5%AE%B9"><span class="toc-number">1.0.0.1.</span> <span class="toc-text">列出目录内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%87%E6%8D%A2%E7%9B%AE%E5%BD%95"><span class="toc-number">1.0.0.2.</span> <span class="toc-text">切换目录</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%98%BE%E7%A4%BA%E5%BD%93%E5%89%8D%E8%B7%AF%E5%BE%84"><span class="toc-number">1.0.0.3.</span> <span class="toc-text">显示当前路径</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%9B%AE%E5%BD%95"><span class="toc-number">1.0.0.4.</span> <span class="toc-text">创建目录</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E7%A9%BA%E7%9B%AE%E5%BD%95"><span class="toc-number">1.0.0.5.</span> <span class="toc-text">删除空目录</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E6%96%87%E4%BB%B6-%E7%9B%AE%E5%BD%95"><span class="toc-number">1.0.0.6.</span> <span class="toc-text">删除文件&#x2F;目录</span></a></li></ol></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E6%96%87%E4%BB%B6%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C"><span class="toc-number">2.</span> <span class="toc-text">对文件基础操作</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%96%87%E4%BB%B6"><span class="toc-number">2.0.0.1.</span> <span class="toc-text">创建文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%96%87%E4%BB%B6%E5%B9%B6%E5%86%99%E5%85%A5%E5%86%85%E5%AE%B9"><span class="toc-number">2.0.0.2.</span> <span class="toc-text">创建文件并写入内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%90%91%E6%A0%B9%E7%9B%AE%E5%BD%95%E4%B8%AD%E5%88%9B%E5%BB%BA%E6%96%87%E4%BB%B6"><span class="toc-number">2.0.0.3.</span> <span class="toc-text">向根目录中创建文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%90%91%E6%A0%B9%E7%9B%AE%E5%BD%95%E4%B8%AD%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%86%99%E5%85%A5%E5%86%85%E5%AE%B9"><span class="toc-number">2.0.0.4.</span> <span class="toc-text">向根目录中创建并写入内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A4%8D%E5%88%B6"><span class="toc-number">2.0.0.5.</span> <span class="toc-text">复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E6%96%87%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">编译文件</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9-asm%E6%96%87%E4%BB%B6%E7%BC%96%E8%AF%91"><span class="toc-number">3.0.1.</span> <span class="toc-text">对.asm文件编译</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#elf%EF%BC%88Intel%E8%AF%AD%E6%B3%95%EF%BC%8CNASM%EF%BC%89"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">elf（Intel语法，NASM）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#elf%EF%BC%88AT-T%E8%AF%AD%E6%B3%95%EF%BC%8CGAS-GCC%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">elf（AT&amp;T语法，GAS+GCC）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#elf%EF%BC%88%E8%B0%83%E7%94%A8C%E6%A0%87%E5%87%86%E5%BA%93%EF%BC%8CNASM-GCC%E9%93%BE%E6%8E%A5%EF%BC%89"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">elf（调用C标准库，NASM+GCC链接）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E"><span class="toc-number">3.0.1.4.</span> <span class="toc-text">参数说明</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9-s%E6%96%87%E4%BB%B6%E7%BC%96%E8%AF%91"><span class="toc-number">3.0.2.</span> <span class="toc-text">对.s文件编译</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">基本命令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%97%AD%E6%89%80%E6%9C%89%E4%BF%9D%E6%8A%A4"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">关闭所有保护</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#32%E4%BD%8D%E7%BC%96%E8%AF%91"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">32位编译</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BA%AF%E6%B1%87%E7%BC%96%EF%BC%88%E6%97%A0-C-%E5%BA%93%E4%BE%9D%E8%B5%96%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">纯汇编（无 C 库依赖）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#S%E5%92%8C-s%E5%90%8E%E7%BC%80%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.0.2.5.</span> <span class="toc-text">.S和.s后缀的区别</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%EF%BC%88%E6%9C%89%E5%BE%85%E8%A1%A5%E5%85%85%EF%BC%89"><span class="toc-number"></span> <span class="toc-text">（有待补充）</span></a></li></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/980f4350/" title="分段"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="分段"></a><div class="content"><a class="title" href="/posts/980f4350/" title="分段">分段</a><time datetime="2026-11-10T04:00:00.000Z" title="发表于 2026-11-10 12:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/bc54abb5/" title="变量定义相关"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="变量定义相关"></a><div class="content"><a class="title" href="/posts/bc54abb5/" title="变量定义相关">变量定义相关</a><time datetime="2026-11-10T03:00:00.000Z" title="发表于 2026-11-10 11:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/4f421bd2/" title="寻址方式(x86)"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="寻址方式(x86)"></a><div class="content"><a class="title" href="/posts/4f421bd2/" title="寻址方式(x86)">寻址方式(x86)</a><time datetime="2026-11-10T02:00:00.000Z" title="发表于 2026-11-10 10:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/6cd4c381/" title="物理内存"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="物理内存"></a><div class="content"><a class="title" href="/posts/6cd4c381/" title="物理内存">物理内存</a><time datetime="2026-11-10T01:00:00.000Z" title="发表于 2026-11-10 09:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f79e4123/" title="虚拟内存"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="虚拟内存"></a><div class="content"><a class="title" href="/posts/f79e4123/" title="虚拟内存">虚拟内存</a><time datetime="2026-11-10T00:00:00.000Z" title="发表于 2026-11-10 08:00:00">2026-11-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By windfire</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="想看什么，嘻~" type="text"></div><hr><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_swiper_injector_config(){
+    var parent_div_git = document.getElementById('recent-posts');
+    var item_html = '<div class="recent-post-item" style="height: auto;width: 100%"><div class="blog-slider swiper-container-fade swiper-container-horizontal" id="swiper_container"><div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms;"></div><div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div></div></div>';
+    console.log('已挂载butterfly_swiper')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'undefined'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_swiper_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_swiper_injector_config();
+  }
+  </script><script defer src="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.js"></script><script defer data-pjax src="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper_init.js"></script><!-- hexo injector body_end end --></body></html>

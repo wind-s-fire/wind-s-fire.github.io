@@ -1,0 +1,318 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>物理内存 | windfire's blog</title><meta name="author" content="windfire"><meta name="copyright" content="windfire"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f2f8ff"><meta name="description" content="定义内存分配：计算机里的”画地盘”内存分配，简单来说就是程序向操作系统申请一块内存空间，用来存放数据。 分类三种分配方式：按时间划分内存分配不是只有一种。根据”什么时候圈地”来划分，可以分成三类：静态分配（编译时）、自动分配（运行时-栈）、动态分配（运行时-堆）。 以下详解 静态内存分配静态内存分配的核心就一句话：编译器在编译阶段就知道这块数据需要多大、放在哪里，程序还没开始跑，地址和大小都已经写">
+<meta property="og:type" content="article">
+<meta property="og:title" content="物理内存">
+<meta property="og:url" content="http://example.com/posts/6cd4c381/index.html">
+<meta property="og:site_name" content="windfire&#39;s blog">
+<meta property="og:description" content="定义内存分配：计算机里的”画地盘”内存分配，简单来说就是程序向操作系统申请一块内存空间，用来存放数据。 分类三种分配方式：按时间划分内存分配不是只有一种。根据”什么时候圈地”来划分，可以分成三类：静态分配（编译时）、自动分配（运行时-栈）、动态分配（运行时-堆）。 以下详解 静态内存分配静态内存分配的核心就一句话：编译器在编译阶段就知道这块数据需要多大、放在哪里，程序还没开始跑，地址和大小都已经写">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/Default_cover.jpg">
+<meta property="article:published_time" content="2026-11-10T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-10T01:00:00.000Z">
+<meta property="article:author" content="windfire">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="内存">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/Default_cover.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "物理内存",
+  "url": "http://example.com/posts/6cd4c381/",
+  "image": "http://example.com/img/Default_cover.jpg",
+  "datePublished": "2026-11-10T01:00:00.000Z",
+  "dateModified": "2026-11-10T01:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "windfire",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/Website_icon.jpg"><link rel="canonical" href="http://example.com/posts/6cd4c381/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#112f4b')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f2f8ff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":300,"languages":{"author":"作者: windfire","link":"链接: ","source":"来源: windfire's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '物理内存',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiperstyle.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/Website_Background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/Avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/comments/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-comment-dots"></i><span> 说说</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/Default_cover.jpg);"><nav id="nav"><!-- 左侧博客信息区域--><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/Website_icon.jpg" alt="Logo"><span class="site-name">windfire's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">物理内存</span></a></span><!-- 新增的导航菜单容器（居中布局关键）--><div id="nav-menus-container"><!-- 菜单主体部分--><div id="menus"> <!-- 菜单项--><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/comments/"><i class="fa-fw fas fa-comments"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-comment-dots"></i><span> 说说</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div id="nav-right-container"><!-- 搜索按钮--><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><!-- 移动端汉堡菜单按钮（保持原位置）--><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">物理内存</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-10T01:00:00.000Z" title="发表于 2026-11-10 09:00:00">2026-11-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-10T01:00:00.000Z" title="更新于 2026-11-10 09:00:00">2026-11-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/pwn/">pwn</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id data-flag-title><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><h3 id="内存分配：计算机里的”画地盘”"><a href="#内存分配：计算机里的”画地盘”" class="headerlink" title="内存分配：计算机里的”画地盘”"></a>内存分配：计算机里的”画地盘”</h3><p>内存分配，简单来说就是<strong>程序向操作系统申请一块内存空间，用来存放数据</strong>。</p>
+<h2 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h2><h3 id="三种分配方式：按时间划分"><a href="#三种分配方式：按时间划分" class="headerlink" title="三种分配方式：按时间划分"></a>三种分配方式：按时间划分</h3><p>内存分配不是只有一种。根据”什么时候圈地”来划分，可以分成三类：静态分配（编译时）、自动分配（运行时-栈）、动态分配（运行时-堆）。</p>
+<p>以下详解</p>
+<h2 id="静态内存分配"><a href="#静态内存分配" class="headerlink" title="静态内存分配"></a>静态内存分配</h2><p>静态内存分配的核心就一句话：<strong>编译器在编译阶段就知道这块数据需要多大、放在哪里，程序还没开始跑，地址和大小都已经写死在可执行文件（ELF）里了。</strong></p>
+<p>你盖一栋房子。承重墙的位置和尺寸是画在设计图上的，地基一浇就固定下来，整栋房子的寿命有多长，这堵墙就立多久。你不能在房子盖好之后说”我觉得这堵墙挡住了阳光，拆了吧”——它天然就该在那里，而且永远在那里。</p>
+<p>静态分配的数据就是程序的”承重墙”——全局变量、静态变量、字符串常量这些东西，链接器在生成可执行文件时就已经给它们分配好了地址，操作系统加载程序时按图索骥，一口气把它们扔进内存里固定位置。程序退出前，这些位置从不挪窝，也从不释放。</p>
+<p><strong>全局变量和静态全局变量</strong>：编译时就知道需要多少内存；</p>
+<p><strong>静态局部变量</strong>：虽然是局部作用域，但内存是编译时确定的；</p>
+<h2 id="自动内存分配"><a href="#自动内存分配" class="headerlink" title="自动内存分配"></a>自动内存分配</h2><p>自动分配发生在函数调用时，分配在<strong>栈</strong>上，是函数块引起的内存变化。函数一进来，栈指针往下一挪，挤出一点空间给局部变量用；函数一返回，栈指针弹回原位，刚才占的那块地立刻作废（残留垃圾值），谁再踩上去谁倒霉。</p>
+<p>自动变量就像出差住酒店——你入住时分到一个房间，退房那一刻房间就不再属于你了。下次再来住，大概率是另一个房间，里面可能还残留着上一个房客的痕迹（这也是为什么未初始化的局部变量是垃圾值）。</p>
+<h3 id="垃圾值来源"><a href="#垃圾值来源" class="headerlink" title="垃圾值来源"></a>垃圾值来源</h3><h4 id="对于栈"><a href="#对于栈" class="headerlink" title="对于栈"></a>对于栈</h4><p>进程启动时，栈就已经分配好了一定大小的虚拟内存区域（Linux 默认 8MB）。这块区域在整个进程的生命周期里反复使用——函数调用时栈指针往下走（”借”空间），函数返回时栈指针往上走（”还”空间），但<strong>只是挪指针，从来没有擦除内容</strong>。</p>
+<p>这时，垃圾值是<strong>同一个进程里，上一次栈使用留下的旧数据</strong>，不是别的进程留下的。它来自你自己的程序，来自之前某个已经返回的函数调用的残留。</p>
+<h4 id="对于堆"><a href="#对于堆" class="headerlink" title="对于堆"></a>对于堆</h4><p><code>malloc</code> 返回的内存也有”未初始化即垃圾值”的问题。但来源同样是<strong>同进程内的历史操作</strong>：</p>
+<ul>
+<li><code>malloc</code> 底层调用 <code>brk</code> 或 <code>mmap</code> 向操作系统要内存</li>
+<li>操作系统给的<strong>新页面</strong>是清零的（zero-fill）</li>
+<li>但 <code>malloc</code> 内部维护了一个<strong>空闲链表</strong>——你 <code>free</code> 掉的内存不会立刻还给操作系统，而是留在链表里等着下次复用</li>
+<li>下次 <code>malloc</code> 从链表里拿一块给你时，<strong>上面还沾着你上次 <code>free</code> 之前写过的旧数据</strong>，并不清零</li>
+</ul>
+<p>所以堆上的垃圾值，也来自同一个进程的历史操作。区别只在于栈是函数调用链的残留，堆是 <code>malloc</code>&#x2F;<code>free</code> 复用机制的残留。</p>
+<h2 id="动态内存分配"><a href="#动态内存分配" class="headerlink" title="动态内存分配"></a>动态内存分配</h2><p>动态分配发生在程序运行时，由程序员显式申请（<code>malloc</code> &#x2F; <code>new</code>），在<strong>堆</strong>上找空闲内存。什么时候申请、申请多大、什么时候释放，全由程序员决定。忘了释放就是内存泄漏，提前释放了还用就是野指针。</p>
+<p>静态分配是自家后院盖的仓库——永久产权，终身使用。动态分配是去菜市场临时租摊位——你想租几个、租多大、租多久，当场谈。但开市结束你得自己收拾走人，忘了退租，市场管理员就当你一直占着。</p>
+<h2 id="表格对比"><a href="#表格对比" class="headerlink" title="表格对比"></a>表格对比</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>静态分配</th>
+<th>自动分配</th>
+<th>动态分配</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>决定时机</strong></td>
+<td>编译时</td>
+<td>编译时（大小）+ 运行时（实际分配）</td>
+<td>运行时</td>
+</tr>
+<tr>
+<td><strong>存放位置</strong></td>
+<td>静态数据区（.data &#x2F; .bss）</td>
+<td>栈</td>
+<td>堆</td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>程序启动到结束</td>
+<td>进入函数到离开函数</td>
+<td>自由控制（<code>malloc</code> 到 <code>free</code>）</td>
+</tr>
+<tr>
+<td><strong>速度</strong></td>
+<td>最快（地址直接编码进指令）</td>
+<td>很快（改一个栈指针寄存器）</td>
+<td>较慢（要在堆里搜索空闲块）</td>
+</tr>
+<tr>
+<td><strong>大小限制</strong></td>
+<td>编译时必须是常量</td>
+<td>栈空间有限（几 MB）</td>
+<td>几乎只受物理内存限制</td>
+</tr>
+<tr>
+<td><strong>释放责任</strong></td>
+<td>操作系统自动回收</td>
+<td>自动回收</td>
+<td>程序员手动释放</td>
+</tr>
+<tr>
+<td><strong>典型例子</strong></td>
+<td>全局变量、静态变量、字符串字面量</td>
+<td>函数局部变量</td>
+<td><code>malloc</code> &#x2F; <code>new</code> 申请的内存</td>
+</tr>
+</tbody></table>
+<h2 id="对于静态分配的部分解释"><a href="#对于静态分配的部分解释" class="headerlink" title="对于静态分配的部分解释"></a>对于静态分配的部分解释</h2><p>“静态”在这里不是”静止不动”的意思，而是**”编译时就确定、运行时不改变”**。</p>
+<p>编译器看到 <code>int global_x = 10;</code>，它就知道：这个东西需要 4 个字节，值从 10 开始，地址就定在数据段的某个偏移量上，这辈子不会变。链接器把它写进可执行文件的元信息里，加载器按图索骥，一瞬间搞定。</p>
+<p>所以静态分配的数据，速度快（地址在指令里硬编码，不用间接寻址），但灵活性差（数组大小必须是编译时常量，不能根据用户输入动态调整）。这也是为什么 C99 之前不允许变长数组，也是为什么静态局部变量的大小不能依赖函数参数——编译器必须提前知道该给你留多大的地。</p>
+<h1 id="物理内存管理"><a href="#物理内存管理" class="headerlink" title="物理内存管理"></a>物理内存管理</h1><h2 id="MMU（内存管理单元）"><a href="#MMU（内存管理单元）" class="headerlink" title="MMU（内存管理单元）"></a>MMU（内存管理单元）</h2><h3 id="定义-1"><a href="#定义-1" class="headerlink" title="定义"></a>定义</h3><p>MMU，全称 Memory Management Unit（内存管理单元），是 CPU 内部（或紧邻 CPU）的一块硬件组件。它不是软件，而是硅片上实实在在的电路。MMU 的核心职责有两个：<strong>地址转换</strong>和<strong>权限检查</strong>。每一次 CPU 发出的内存访问请求，都必须经过 MMU 的审查才能到达物理内存。</p>
+<h3 id="地址转换"><a href="#地址转换" class="headerlink" title="地址转换"></a>地址转换</h3><p><strong>虚拟地址 → 物理地址</strong></p>
+<p>现代操作系统给每个进程分配独立的虚拟地址空间（如 32 位系统下的 4GB）。进程”以为”自己独占全部内存，但实际上多个进程的虚拟地址被映射到不同的物理页上。MMU 通过<strong>页表</strong>完成这个转换。（“虚拟地址”部分详见《虚拟内存》；“页表”见《页的概念》）</p>
+<p>页表由操作系统维护，存储在物理内存中。每条页表项（PTE）记录了一个虚拟页面对应的物理页框号，以及该页的权限位。CPU 发出虚拟地址后，MMU 将其拆分为”页号 + 页内偏移”，以页号为索引查页表，找到物理页框号后拼接偏移，得到物理地址。</p>
+<p>（后话）为了加速这个过程，MMU 内部还集成了 <strong>TLB（Translation Lookaside Buffer，转换后备缓冲）</strong>——一个缓存最近地址映射的高速小存储，命中的话几乎零延迟完成转换。</p>
+<h3 id="权限检查"><a href="#权限检查" class="headerlink" title="权限检查"></a>权限检查</h3><p><strong>段错误的直接来源</strong></p>
+<p>MMU 在查页表的同时，会读取每个页表项中的权限位。典型权限包括：</p>
+<table>
+<thead>
+<tr>
+<th>权限位</th>
+<th>text 段</th>
+<th>rodata 段</th>
+<th>data 段</th>
+<th>栈&#x2F;堆</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R（可读）</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>W（可写）</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>X（可执行）</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+</tbody></table>
+<p>text 段是所有段中唯一具备可执行权限的，CPU 的取指单元在每次读取指令前由 MMU 检查页表——如果当前指令指针指向的页面没有 X 权限，MMU 直接触发段错误。 </p>
+<p>同理，如果 CPU 试图向 R-X 或 R– 页面写入数据，MMU 比对权限时发现 W 位为 0，也立即拦截。</p>
+<h3 id="实现原理：完整的段错误流程"><a href="#实现原理：完整的段错误流程" class="headerlink" title="实现原理：完整的段错误流程"></a>实现原理：完整的段错误流程</h3><p>下面以”程序试图修改 text 段中的一条指令”为例，完整追踪一次段错误的发生过程：</p>
+<p><strong>第一步：加载时设立防线。</strong> 操作系统加载可执行文件时，解析 ELF&#x2F;PE 段表中的权限信息，为 text 段建立页表项并将其权限位设为 R-X（可读、可执行、不可写），为 rodata 段设为 R–，为 data 段设为 RW-。这些页表项写入物理内存后，操作系统用特权指令告诉 MMU 页表的基地址。</p>
+<p><strong>第二步：程序发出违规写指令。</strong> 假设程序由于 bug 将 text 段的某个地址当作数据地址来写——CPU 执行单元发出一条 <code>mov [text_addr], value</code> 的存储指令。</p>
+<p><strong>第三步：MMU 拦截。</strong> 存储指令触发内存访问，MMU 接管。MMU 查页表（或 TLB）找到 text_addr 对应的页表项，检查权限位：W 位 &#x3D; 0。权限校验失败。</p>
+<p><strong>第四步：硬件触发异常。</strong> MMU 不向内存总线发出任何信号——它直接向 CPU 内核发出一个<strong>页故障（page fault）</strong>异常信号。CPU 从用户模式切换到内核特权模式，保存现场（寄存器、指令指针等），跳转到操作系统的页故障异常处理程序。值得注意的是，此时异常类型是”权限违规”而非”页面不存在”。</p>
+<p><strong>第五步：操作系统裁决。</strong> 内核的页故障处理程序检查异常详情：</p>
+<ul>
+<li>如果是”页面不在物理内存”（如被 swap 换出），内核会从磁盘调入页面并重试——这是正常的缺页中断。</li>
+<li>如果是”权限违规”——即此次的情况——内核判定该进程试图非法访问内存，向进程发送 <strong>SIGSEGV</strong> 信号。</li>
+</ul>
+<p><strong>第六步：进程终止。</strong> 进程如果未注册 SIGSEGV 的自定义处理函数，默认行为是立即终止。操作系统输出 “Segmentation fault (core dumped)”，程序崩溃。</p>
+<p>整个过程中，最关键的一点是：<strong>拦截发生在硬件层，而非软件层。</strong> 不是操作系统在每条指令后”检查一眼代码有没有乱写”——操作系统根本不可能有那样的效率。而是 MMU 作为 CPU 和内存总线之间的必经之闸，在地址翻译的同时顺手完成权限比对。不合规的访问连内存控制器都到不了，在这道闸口就被拦下了。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">windfire</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/posts/6cd4c381/">http://example.com/posts/6cd4c381/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="external nofollow noopener noreferrer">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">windfire's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/pwn/">pwn</a><a class="post-meta__tags" href="/tags/%E5%86%85%E5%AD%98/">内存</a><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></div><div class="post-share"><div class="social-share" data-image="/img/Default_cover.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/4f421bd2/" title="寻址方式(x86)"><img class="cover" src="/img/Default_cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">寻址方式(x86)</div></div><div class="info-2"><div class="info-item-1">注：以x86系统为例。完整示例代码段在文后。 立即寻址(立即数)Immediate Addressing 操作数直接以常数形式编码在指令中，不需要访问任何寄存器或内存。 12345mov     eax, 0Bh        ; eax = 0xBadd     eax, 1BF48h      ; eax = eax + 0x1BF48sub     eax, 1            ; eax = eax - 1mov     edx, 2            ; edx = 2mov     eax, 4            ; eax = 4  特点：  速度最快，常数在...</div></div></div></a><a class="pagination-related" href="/posts/f79e4123/" title="虚拟内存"><img class="cover" src="/img/Default_cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">虚拟内存</div></div><div class="info-2"><div class="info-item-1">定义虚拟内存是一套由操作系统软件和硬件内存管理单元协同实现的、综合性的内存管理技术体系。它的核心目标是： 1·提供虚拟地址空间的抽象（让每个进程有独立的、连续的大空间）。【虚拟地址空间另有文章，本文不作解释】 2·高效、安全地管理有限的物理内存资源。 3·实现内存的共享与保护。 核心机制VMA（Virtual Memory Area，虚拟内存区域）是内核在每个进程的 mm_struct 中维护的数据结构。它的职责是划定虚拟地址的用途和规则。 一个 VMA 节点记录的信息大致如下： 12345vm_start:     0x7F0000100000    ← 起始虚拟地址vm_end:  ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/980f4350/" title="分段"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">分段</div></div><div class="info-2"><div class="info-item-1">什么是程序分段程序分段，通常指的是操作系统和计算机硬件为了更有效地管理内存而采用的一种技术，它把一个程序（或进程）划分成几个逻辑上独立的段。 想象一套本草纲目，不分段的程序就是一本本连续印刷，没有目录，没有分类，也没有分章节的书，想找到水部中的某个草药的某个药性，难度可想而知，但是为什么现实我们能轻松找到水部，因为目录，因为分章节，分纲目，而分段就相当于目录中的“第几章”。 为什么要分段1·逻辑清晰与管理 程序本身就包含不同的逻辑单元，如代码（指令）、数据、堆（动态分配的内存）、栈（存储局部变量和函数调用的内存），分别体现为text段、data段、堆（Heap）、栈（Stack）以及BS...</div></div></div></a><a class="pagination-related" href="/posts/bc54abb5/" title="变量定义相关"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">变量定义相关</div></div><div class="info-2"><div class="info-item-1">Global Variable 代码示例1234567//全局变量int globalVar = 10;          // 定义在所有函数之外static int fileStatic = 20;  // 用 static 限制的全局变量（见下文）void func() &#123;    globalVar++;   // 全局变量可在任意函数中访问&#125;  作用域作用域：从定义处开始到文件末尾的整个源文件。通过 extern 声明，可以被其他源文件访问（默认具有外部链接属性）。 生命周期生命周期与整个程序的运行周期一致——程序启动时分配内存并初始化，程序结束时销毁。 位置...</div></div></div></a><a class="pagination-related" href="/posts/65de5b3f/" title="页的概念"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">页的概念</div></div><div class="info-2"><div class="info-item-1">看到页，我首先就会联想到书，而页的定义与书籍的页也的确有相似的点。 页的定义页（Page）是虚拟内存管理中的最小单位，通常大小为 4KB（4096 字节），就像一本每一页都有且只有4096个字母的书。无论操作系统做地址翻译、权限保护，还是把内存换入换出磁盘，一切操作都以”页”为粒度进行——不存在比页更细的操作单元。 页的大小你可能会问：既然故事的章节有长有短（对应分段中的 text 段、data 段、堆、栈），为什么不让每一”页”的大小跟着内容走？那样不是更自然吗？ 用书的比喻来回答：如果每页的字数不固定——第 1 章 2000 字，第 2 章 15000 字——书架上的格子就必须做成不...</div></div></div></a><a class="pagination-related" href="/posts/f79e4123/" title="虚拟内存"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">虚拟内存</div></div><div class="info-2"><div class="info-item-1">定义虚拟内存是一套由操作系统软件和硬件内存管理单元协同实现的、综合性的内存管理技术体系。它的核心目标是： 1·提供虚拟地址空间的抽象（让每个进程有独立的、连续的大空间）。【虚拟地址空间另有文章，本文不作解释】 2·高效、安全地管理有限的物理内存资源。 3·实现内存的共享与保护。 核心机制VMA（Virtual Memory Area，虚拟内存区域）是内核在每个进程的 mm_struct 中维护的数据结构。它的职责是划定虚拟地址的用途和规则。 一个 VMA 节点记录的信息大致如下： 12345vm_start:     0x7F0000100000    ← 起始虚拟地址vm_end:  ...</div></div></div></a><a class="pagination-related" href="/posts/4f421bd2/" title="寻址方式(x86)"><img class="cover" src="/img/Default_cover.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-10</div><div class="info-item-2">寻址方式(x86)</div></div><div class="info-2"><div class="info-item-1">注：以x86系统为例。完整示例代码段在文后。 立即寻址(立即数)Immediate Addressing 操作数直接以常数形式编码在指令中，不需要访问任何寄存器或内存。 12345mov     eax, 0Bh        ; eax = 0xBadd     eax, 1BF48h      ; eax = eax + 0x1BF48sub     eax, 1            ; eax = eax - 1mov     edx, 2            ; edx = 2mov     eax, 4            ; eax = 4  特点：  速度最快，常数在...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/Avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info-name">windfire</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="external nofollow noopener noreferrer" href="https://wind-s-fire.github.io/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89"><span class="toc-number">1.</span> <span class="toc-text">定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%9C%BA%E9%87%8C%E7%9A%84%E2%80%9D%E7%94%BB%E5%9C%B0%E7%9B%98%E2%80%9D"><span class="toc-number">1.1.</span> <span class="toc-text">内存分配：计算机里的”画地盘”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E7%B1%BB"><span class="toc-number">2.</span> <span class="toc-text">分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E5%88%86%E9%85%8D%E6%96%B9%E5%BC%8F%EF%BC%9A%E6%8C%89%E6%97%B6%E9%97%B4%E5%88%92%E5%88%86"><span class="toc-number">2.1.</span> <span class="toc-text">三种分配方式：按时间划分</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="toc-number">3.</span> <span class="toc-text">静态内存分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="toc-number">4.</span> <span class="toc-text">自动内存分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E5%80%BC%E6%9D%A5%E6%BA%90"><span class="toc-number">4.1.</span> <span class="toc-text">垃圾值来源</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9%E4%BA%8E%E6%A0%88"><span class="toc-number">4.1.1.</span> <span class="toc-text">对于栈</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9%E4%BA%8E%E5%A0%86"><span class="toc-number">4.1.2.</span> <span class="toc-text">对于堆</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="toc-number">5.</span> <span class="toc-text">动态内存分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A8%E6%A0%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">表格对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E4%BA%8E%E9%9D%99%E6%80%81%E5%88%86%E9%85%8D%E7%9A%84%E9%83%A8%E5%88%86%E8%A7%A3%E9%87%8A"><span class="toc-number">7.</span> <span class="toc-text">对于静态分配的部分解释</span></a></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number"></span> <span class="toc-text">物理内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#MMU%EF%BC%88%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">MMU（内存管理单元）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89-1"><span class="toc-number">1.1.</span> <span class="toc-text">定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="toc-number">1.2.</span> <span class="toc-text">地址转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E6%A3%80%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">权限检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%EF%BC%9A%E5%AE%8C%E6%95%B4%E7%9A%84%E6%AE%B5%E9%94%99%E8%AF%AF%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">实现原理：完整的段错误流程</span></a></li></ol></li></ol></li></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/980f4350/" title="分段"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="分段"></a><div class="content"><a class="title" href="/posts/980f4350/" title="分段">分段</a><time datetime="2026-11-10T04:00:00.000Z" title="发表于 2026-11-10 12:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/bc54abb5/" title="变量定义相关"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="变量定义相关"></a><div class="content"><a class="title" href="/posts/bc54abb5/" title="变量定义相关">变量定义相关</a><time datetime="2026-11-10T03:00:00.000Z" title="发表于 2026-11-10 11:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/4f421bd2/" title="寻址方式(x86)"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="寻址方式(x86)"></a><div class="content"><a class="title" href="/posts/4f421bd2/" title="寻址方式(x86)">寻址方式(x86)</a><time datetime="2026-11-10T02:00:00.000Z" title="发表于 2026-11-10 10:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/6cd4c381/" title="物理内存"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="物理内存"></a><div class="content"><a class="title" href="/posts/6cd4c381/" title="物理内存">物理内存</a><time datetime="2026-11-10T01:00:00.000Z" title="发表于 2026-11-10 09:00:00">2026-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f79e4123/" title="虚拟内存"><img src="/img/Default_cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="虚拟内存"></a><div class="content"><a class="title" href="/posts/f79e4123/" title="虚拟内存">虚拟内存</a><time datetime="2026-11-10T00:00:00.000Z" title="发表于 2026-11-10 08:00:00">2026-11-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By windfire</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="想看什么，嘻~" type="text"></div><hr><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_swiper_injector_config(){
+    var parent_div_git = document.getElementById('recent-posts');
+    var item_html = '<div class="recent-post-item" style="height: auto;width: 100%"><div class="blog-slider swiper-container-fade swiper-container-horizontal" id="swiper_container"><div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms;"></div><div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div></div></div>';
+    console.log('已挂载butterfly_swiper')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'undefined'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_swiper_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_swiper_injector_config();
+  }
+  </script><script defer src="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.js"></script><script defer data-pjax src="https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper_init.js"></script><!-- hexo injector body_end end --></body></html>
