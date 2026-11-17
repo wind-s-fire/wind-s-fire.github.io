@@ -1,0 +1,91 @@
+/* ============================================================
+   自定义样式（通过 _config.butterfly.yml -> inject.head 引入）
+   注意：不要修改主题源码，所有定制都写在这里
+   ============================================================ */
+
+/* ---------- 1. 首页全屏封面：标题深色 ---------- */
+#page-header.full_page #site-title {
+  color: #22303f;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+}
+#page-header.full_page #site-subtitle,
+#page-header.full_page #site_social_icons .social-icon {
+  color: #3c4b5a;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+}
+
+/* ---------- 2. 统一背景：首页/文章页之外的页面 ---------- */
+/* 去掉顶部横幅自己的图片，让固定的 #web_bg 铺满整页（封面与背景合为一张） */
+#page-header.not-home-page {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+/* 页面标题改为深色，避免亮色背景上看不清 */
+#page-header.not-home-page #site-title {
+  color: #22303f;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+}
+
+/* 各分页的背景图（按 #body-wrap 的页面类型 class 定位） */
+html:has(#body-wrap.type-categories) #web_bg {
+  background-image: url('/img/Category_Banner.png') !important;
+}
+html:has(#body-wrap.type-tags) #web_bg {
+  background-image: url('/img/Label_Banner.jpg') !important;
+}
+html:has(#body-wrap.type-shuoshuo) #web_bg {
+  background-image: url('/img/Speak_Banner.jpg') !important;
+}
+html:has(#body-wrap.type-link) #web_bg {
+  background-image: url('/img/Friend_Banner.jpg') !important;
+}
+html:has(#body-wrap.type-comments) #web_bg {
+  background-image: url('/img/Website_Background.jpg') !important;
+}
+/* 归档页由生成器输出，没有 type class，用归档列表结构定位 */
+html:has(#archive) #web_bg {
+  background-image: url('/img/Archive_Banner.jpg') !important;
+}
+
+/* ---------- 3. 隐藏右侧滚动条（仍可正常滚动） ---------- */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ---------- 4. 导航：搜索固定在最右侧 ---------- */
+#nav #nav-right-container {
+  position: absolute;
+  right: 36px;
+  top: 0;
+  height: 60px;
+}
+@media screen and (max-width: 768px) {
+  #nav #nav-right-container {
+    right: 16px;
+  }
+}
+
+/* ---------- 5. 页脚声明：40% 黑色蒙版 + 白字 ---------- */
+#footer {
+  background-color: rgba(0, 0, 0, .4) !important;
+}
+#footer,
+#footer > *,
+#footer a {
+  color: #fff !important;
+}
+#footer a:hover {
+  color: #9cd2ff !important;
+}
+
+/* ---------- 6. 文章阅读界面：标题深色 ---------- */
+#post-info .post-title {
+  color: #22303f;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, .5);
+}
