@@ -20,10 +20,13 @@
   background-image: none !important;
   background-color: transparent !important;
 }
-/* 页面标题改为深色，避免亮色背景上看不清 */
+/* 页面标题沿用主题默认白字 + 阴影（与参考站一致），在深浅背景上都可读 */
+#page-header.not-home-page #page-site-info {
+  text-align: center;
+}
 #page-header.not-home-page #site-title {
-  color: #22303f;
-  text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .55), 0 1px 2px rgba(0, 0, 0, .4);
 }
 
 /* 各分页的背景图（按 #body-wrap 的页面类型 class 定位） */
