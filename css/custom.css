@@ -92,3 +92,22 @@ html::-webkit-scrollbar {
   color: #22303f;
   text-shadow: 0 1px 4px rgba(255, 255, 255, .5);
 }
+
+/* ---------- 7. 首页轮播（hexo-butterfly-swiper） ---------- */
+/* 默认卡片高 200px，而封面本身 200px，会顶出卡片上下边；给卡片留出内边距高度 */
+@media screen and (min-width: 600px) {
+  #recent-posts > .recent-post-item:has(#swiper_container) {
+    height: auto !important;
+  }
+  .blog-slider {
+    height: 220px;
+  }
+  .blog-slider__item {
+    height: 200px;
+  }
+  /* 标题/简介超长时省略，避免撑破 200px 卡片 */
+  .blog-slider__title,
+  .blog-slider__text {
+    -webkit-line-clamp: 1;
+  }
+}
