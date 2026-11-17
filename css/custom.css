@@ -99,15 +99,15 @@ html::-webkit-scrollbar {
   #recent-posts > .recent-post-item:has(#swiper_container) {
     height: auto !important;
   }
-  .blog-slider {
-    height: 220px;
+  #recent-posts .blog-slider {
+    height: 220px !important;
   }
-  .blog-slider__item {
+  #recent-posts .blog-slider__item {
     height: 200px;
   }
   /* 标题/简介超长时省略，避免撑破 200px 卡片 */
-  .blog-slider__title,
-  .blog-slider__text {
+  #recent-posts .blog-slider__title,
+  #recent-posts .blog-slider__text {
     -webkit-line-clamp: 1;
   }
 }
